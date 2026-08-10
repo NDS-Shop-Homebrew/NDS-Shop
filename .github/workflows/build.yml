@@ -3,14 +3,14 @@ name: Build NDS-Shop
 on:
   push:
     branches-ignore: [translation]
+    tags:
+      - 'v*'
     paths-ignore:
       - 'README.md'
   pull_request:
     branches: ["*"]
     paths-ignore:
       - 'README.md'
-  release:
-    types: [published]
   workflow_dispatch:
 
 jobs:
@@ -18,13 +18,6 @@ jobs:
     runs-on: ubuntu-latest
     container: devkitpro/devkitarm
     name: Build with Docker using devkitARM
-    outputs:
-      commit_tag: ${{ steps.build.outputs.commit_tag }}
-      commit_hash: ${{ steps.build.outputs.commit_hash }}
-      author_name: ${{ steps.build.outputs.author_name }}
-      committer_name: ${{ steps.build.outputs.committer_name }}
-      commit_subject: ${{ steps.build.outputs.commit_subject }}
-      commit_message: ${{ steps.build.outputs.commit_message }}
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -48,93 +41,30 @@ jobs:
           mv makerom /usr/local/bin
           rm makerom-v0.17-ubuntu_x86_64.zip
       - name: Build
-        id: build
         run: |
           make
           mkdir -p ~/artifacts
           cp NDS-Shop.3dsx ~/artifacts
           cp NDS-Shop.cia ~/artifacts
-          echo "commit_tag=$(git describe --tags $(git rev-list --tags --max-count=1) 2>/dev/null)" >> $GITHUB_OUTPUT
-          echo "commit_hash=$(git log --format=%h -1)" >> $GITHUB_OUTPUT
-
-          # Webhook info
-          echo "name=author_name::$(git log -1 $GITHUB_SHA --pretty=%aN)" >> $GITHUB_OUTPUT
-          echo "name=committer_name::$(git log -1 $GITHUB_SHA --pretty=%cN)" >> $GITHUB_OUTPUT
-          echo "name=commit_subject::$(git log -1 $GITHUB_SHA --pretty=%s)" >> $GITHUB_OUTPUT
-          echo "name=commit_message::$(git log -1 $GITHUB_SHA --pretty=%b)" >> $GITHUB_OUTPUT
       - name: Publish build to GH Actions
         uses: actions/upload-artifact@v4
         with:
           path: ~/artifacts/*
           name: build
 
-  publish_build:
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
-    name: Publish build to NDS-Shop-Team/files
-    if: false # Temporarily disabled until NDS-Shop-Team/files repo is recreated
-    #if: ${{ success() && !startsWith(github.ref, 'refs/pull') }}
     needs: build
-    env:
-      COMMIT_TAG: ${{ needs.build.outputs.commit_tag }}
-      COMMIT_HASH: ${{ needs.build.outputs.commit_hash }}
-      AUTHOR_NAME: ${{ needs.build.outputs.author_name }}
-      COMMIT_SUBJECT: ${{ needs.build.outputs.commit_subject }}
-      COMMIT_MESSAGE: ${{ needs.build.outputs.commit_message }}
-    outputs:
-      current_date: ${{ steps.commit.outputs.current_date }}
+    name: Publish GitHub Release
     steps:
-      - name: Install tools
-        run: |
-          sudo apt-get update
-          sudo apt-get install qrencode -y
       - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
           name: build
           path: build
-      - name: Upload to ${{ github.repository }} release
-        if: ${{ startsWith(github.ref, 'refs/tags') }}
-        run: |
-          ID=$(jq --raw-output '.release.id' $GITHUB_EVENT_PATH)
-
-          for file in ${{ github.workspace }}/build/*; do
-            AUTH_HEADER="Authorization: token ${{ secrets.GIT_TOKEN }}"
-            CONTENT_LENGTH="Content-Length: $(stat -c%s $file)"
-            CONTENT_TYPE="Content-Type: application/7z-x-compressed"
-            UPLOAD_URL="https://uploads.github.com/repos/${{ github.repository }}/releases/$ID/assets?name=$(basename $file)"
-
-            curl -XPOST -H "$AUTH_HEADER" -H "$CONTENT_LENGTH" -H "$CONTENT_TYPE" --upload-file "$file" "$UPLOAD_URL"
-          done
-      - name: Commit and push to NDS-Shop-Team/files
-        id: commit
-        run: |
-          CURRENT_DATE=$(date +"%Y%m%d-%H%M%S")
-          echo "current_date=$CURRENT_DATE" >> $GITHUB_OUTPUT
-          echo "COMMIT_TAG: ${{ env.COMMIT_TAG }}"
-
-          git config --global user.email "ndsshopunistore@gmail.com"
-          git config --global user.name "NDSSHOPBOT"
-          git clone --depth 1 https://${{ secrets.NDSSHOPBOT_TOKEN }}@github.com/NDS-Shop-Team/files.git
-          mkdir -p files/builds/NDS-Shop/
-          cd files/builds/NDS-Shop/
-          qrencode -o NDS-Shop.png https://github.com/NDS-Shop-Team/files/raw/main/builds/NDS-Shop/NDS-Shop.cia
-          qrencode -o NDS-Shop-release.png https://github.com/NDS-Shop-Team/NDS-Shop/releases/download/${{ env.COMMIT_TAG }}/NDS-Shop.cia
-          cp ${{ github.workspace }}/build/* .
-          git stage .
-          git commit -m "NDS-Shop | ${{ env.COMMIT_HASH }}"
-          git tag v$CURRENT_DATE
-          git push origin main v$CURRENT_DATE
-      - name: Release to NDS-Shop-Team/files
-        run: |
-          AUTH_HEADER="Authorization: token ${{ secrets.NDSSHOPBOT_TOKEN }}"
-          API_URL="https://api.github.com/repos/NDS-Shop-Team/files/releases"
-          curl -X POST -H "$AUTH_HEADER" \
-            -H "Content-Type: application/json" \
-            -d '{"tag_name": "v'"$CURRENT_DATE"'", "name": "NDS-Shop | '"${{ env.COMMIT_HASH }}"'", "body": "'"${{ env.AUTHOR_NAME }} - ${{ env.COMMIT_SUBJECT }}\n\n${{ env.COMMIT_MESSAGE }}"'", "prerelease": true}' \
-            "$API_URL"
-          for file in build/*; do
-            curl -X POST -H "$AUTH_HEADER" \
-              -H "Content-Type: application/7z-x-compressed" \
-              --upload-file "$file" \
-              "https://uploads.github.com/repos/NDS-Shop-Team/files/releases/latest/assets?name=$(basename $file)"
-          done
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: build/*
+          fail_on_unmatched_files: true
