@@ -25,6 +25,7 @@
 #include "mainScreen.hpp"
 #include "queueSystem.hpp"
 #include "screenshot.hpp"
+#include "scriptUtils.hpp"
 #include "storeUtils.hpp"
 #include <unistd.h>
 
@@ -253,7 +254,15 @@ void MainScreen::Logic(u32 hDown, u32 hHeld, touchPosition touch) {
 							}
 						}
 
-						if (!good) this->installs.push_back( false );
+						if (!good) {
+							/* Auto-detect: check if the download's destination file already exists on the SD card. */
+							const int entryIndex = StoreUtils::entries[StoreUtils::store->GetEntry()]->GetEntryIndex();
+							if (StoreUtils::store->GetJson()["storeContent"][entryIndex].contains(this->dwnldList[i]) && ScriptUtils::IsInstalled(StoreUtils::store->GetJson()["storeContent"][entryIndex][this->dwnldList[i]])) {
+								this->installs.push_back( true );
+							} else {
+								this->installs.push_back( false );
+							}
+						}
 					}
 				}
 			}

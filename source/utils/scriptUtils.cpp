@@ -315,6 +315,48 @@ Result ScriptUtils::extractFile(const std::string &file, const std::string &inpu
 /*
 	NOTE: This is for the argument system for now. This might get replaced completely with the Queue System in the future.
 */
+/* Resolve a script output path to a full SD path, replacing the %-macros. */
+static std::string resolvePath(const std::string &output) {
+	std::string out = output;
+	out = std::regex_replace(out, std::regex("%3DSX%/(.*)\\.(.*)"), config->_3dsxPath() + (config->_3dsxInFolder() ? "/$1/$1.$2" : "/$1.$2"));
+	out = std::regex_replace(out, std::regex("%3DSX%"), config->_3dsxPath());
+	out = std::regex_replace(out, std::regex("%NDS%"), config->ndsPath());
+	out = std::regex_replace(out, std::regex("%ARCHIVE_DEFAULT%"), config->archPath());
+	out = std::regex_replace(out, std::regex("%FIRM%"), config->firmPath());
+	return out;
+}
+
+/*
+	Check whether a download script's destination file(s) already exist on the SD card.
+	This auto-detects entries that were already installed, without relying on metadata.
+
+	const nlohmann::json &script: The download script (array of steps, or an object wrapping a "script" array).
+*/
+bool ScriptUtils::IsInstalled(const nlohmann::json &script) {
+	nlohmann::json Script = nullptr;
+
+	if (script.is_array()) {
+		Script = script;
+
+	} else if (script.is_object() && script.contains("script") && script["script"].is_array()) {
+		Script = script["script"];
+
+	} else {
+		return false;
+	}
+
+	for (int i = 0; i < (int)Script.size(); i++) {
+		if (!Script[i].is_object()) continue;
+		if (!Script[i].contains("type") || !Script[i]["type"].is_string()) continue;
+		if (Script[i]["type"] != "downloadFile") continue;
+		if (!Script[i].contains("output") || !Script[i]["output"].is_string()) continue;
+
+		if (access(resolvePath(Script[i]["output"]).c_str(), F_OK) == 0) return true;
+	}
+
+	return false;
+}
+
 Result ScriptUtils::runFunctions(nlohmann::json storeJson, int selection, const std::string &entry) {
 	Result ret = NONE; // No Error as of yet.
 
