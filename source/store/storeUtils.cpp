@@ -79,6 +79,76 @@ bool StoreUtils::compareUpdateAscending(const std::unique_ptr<StoreEntry> &a, co
 }
 
 /*
+	Parse a human readable filesize like "12 MB" or "1.2 GB" into bytes.
+
+	const std::string &str: The size string.
+*/
+static double ParseSize(const std::string &str) {
+	if (str == "") return 0;
+
+	std::string num;
+	for (size_t i = 0; i < str.size(); i++) {
+		if (isdigit(str[i]) || str[i] == '.' || str[i] == ',') num += (str[i] == ',' ? '.' : str[i]);
+		else break;
+	}
+
+	double value = (num != "" ? atof(num.c_str()) : 0);
+
+	if (str.find("GB") != std::string::npos || str.find("gb") != std::string::npos) return value * 1000000000.0;
+	if (str.find("MB") != std::string::npos || str.find("mb") != std::string::npos) return value * 1000000.0;
+	if (str.find("KB") != std::string::npos || str.find("kb") != std::string::npos) return value * 1000.0;
+
+	return value;
+}
+
+/*
+	Return the total size (in bytes) of all downloads of an entry.
+
+	const std::unique_ptr<StoreEntry> &entry: The entry.
+*/
+static double GetEntrySize(const std::unique_ptr<StoreEntry> &entry) {
+	if (!entry) return 0;
+
+	double size = 0;
+	const std::vector<std::string> sizes = entry->GetSizes();
+	for (int i = 0; i < (int)sizes.size(); i++) {
+		size += ParseSize(sizes[i]);
+	}
+
+	return size;
+}
+
+/*
+	Compare by download size.
+
+	const std::unique_ptr<StoreEntry> &a: Const Reference to Entry A.
+	const std::unique_ptr<StoreEntry> &b: Const Reference to Entry B.
+*/
+bool StoreUtils::compareSizeDescending(const std::unique_ptr<StoreEntry> &a, const std::unique_ptr<StoreEntry> &b) {
+	return GetEntrySize(a) > GetEntrySize(b);
+}
+bool StoreUtils::compareSizeAscending(const std::unique_ptr<StoreEntry> &a, const std::unique_ptr<StoreEntry> &b) {
+	return GetEntrySize(a) < GetEntrySize(b);
+}
+
+/*
+	Compare by update availability. (Updates available first.)
+
+	const std::unique_ptr<StoreEntry> &a: Const Reference to Entry A.
+	const std::unique_ptr<StoreEntry> &b: Const Reference to Entry B.
+*/
+bool StoreUtils::compareInstalledUpdateDescending(const std::unique_ptr<StoreEntry> &a, const std::unique_ptr<StoreEntry> &b) {
+	if (a && b) return a->GetUpdateAvl() && !b->GetUpdateAvl();
+
+	return true;
+}
+bool StoreUtils::compareInstalledUpdateAscending(const std::unique_ptr<StoreEntry> &a, const std::unique_ptr<StoreEntry> &b) {
+	if (a && b) return b->GetUpdateAvl() && !a->GetUpdateAvl();
+
+	return true;
+}
+
+/*
 	Sort the entries.
 
 	bool Ascending: If Ascending.
@@ -96,6 +166,14 @@ void StoreUtils::SortEntries(bool Ascending, SortType sorttype) {
 
 		case SortType::LAST_UPDATED:
 			Ascending ? std::sort(StoreUtils::entries.begin(), StoreUtils::entries.end(), StoreUtils::compareUpdateAscending) : std::sort(StoreUtils::entries.begin(), StoreUtils::entries.end(), StoreUtils::compareUpdateDescending);
+			break;
+
+		case SortType::SIZE:
+			Ascending ? std::sort(StoreUtils::entries.begin(), StoreUtils::entries.end(), StoreUtils::compareSizeAscending) : std::sort(StoreUtils::entries.begin(), StoreUtils::entries.end(), StoreUtils::compareSizeDescending);
+			break;
+
+		case SortType::UPDATE:
+			Ascending ? std::sort(StoreUtils::entries.begin(), StoreUtils::entries.end(), StoreUtils::compareInstalledUpdateAscending) : std::sort(StoreUtils::entries.begin(), StoreUtils::entries.end(), StoreUtils::compareInstalledUpdateDescending);
 			break;
 	}
 }
@@ -124,9 +202,10 @@ static bool findInVector(const std::vector<std::string> &items, const std::strin
 	bool console: if consoles should be included.
 	int selectedMarks: The selected mark flags.
 	bool updateAvl: if available updates should be an included flag.
+	bool installedAvl: if installed entries should be an included flag.
 	bool isAND: if using AND or OR mode.
 */
-void StoreUtils::search(const std::string &query, bool title, bool author, bool category, bool console, int selectedMarks, bool updateAvl, bool isAND) {
+void StoreUtils::search(const std::string &query, bool title, bool author, bool category, bool console, int selectedMarks, bool updateAvl, bool installedAvl, bool isAND) {
 	if (isAND) {
 		for (auto it = StoreUtils::entries.begin(); it != StoreUtils::entries.end(); ++it) {
 			if (!(((title && StringUtils::lower_case((*it)->GetTitle()).find(StringUtils::lower_case(query)) != std::string::npos)
@@ -134,7 +213,10 @@ void StoreUtils::search(const std::string &query, bool title, bool author, bool 
 			|| (category && findInVector((*it)->GetCategoryFull(), StringUtils::lower_case(query)))
 			|| (console && findInVector((*it)->GetConsoleFull(), StringUtils::lower_case(query)))
 			|| (!title && !author && !category && !console))
-			&& ((selectedMarks == 0 && !updateAvl) || ((((*it)->GetMarks() & selectedMarks) == selectedMarks) && (!updateAvl || (*it)->GetUpdateAvl()))))) {
+			&& ((selectedMarks == 0 && !updateAvl && !installedAvl)
+			|| ((selectedMarks == 0 || (((*it)->GetMarks() & selectedMarks) == selectedMarks))
+			&& (!updateAvl || (*it)->GetUpdateAvl())
+			&& (!installedAvl || (*it)->GetInstalled()))))) {
 				it = StoreUtils::entries.erase(it);
 				--it;
 			}
@@ -147,7 +229,10 @@ void StoreUtils::search(const std::string &query, bool title, bool author, bool 
 			|| (category && findInVector((*it)->GetCategoryFull(), StringUtils::lower_case(query)))
 			|| (console && findInVector((*it)->GetConsoleFull(), StringUtils::lower_case(query)))
 			|| (!title && !author && !category && !console))
-			&& ((selectedMarks == 0 && !updateAvl) || (*it)->GetMarks() & selectedMarks || (updateAvl && (*it)->GetUpdateAvl())))) {
+			&& ((selectedMarks == 0 && !updateAvl && !installedAvl)
+			|| (*it)->GetMarks() & selectedMarks
+			|| (updateAvl && (*it)->GetUpdateAvl())
+			|| (installedAvl && (*it)->GetInstalled())))) {
 				it = StoreUtils::entries.erase(it);
 				--it;
 			}
@@ -215,6 +300,48 @@ void StoreUtils::AddAllToQueue() {
 		for (int storeEntry = 0; storeEntry < (int)StoreUtils::entries.size(); storeEntry++) {
 			if (StoreUtils::entries[storeEntry]) { // Ensure pointer is valid.
 
+				const std::vector<std::string> entryNames = StoreUtils::store->GetDownloadList(StoreUtils::entries[storeEntry]->GetEntryIndex()); // Return a vector of all Download Entries.
+				const std::vector<std::string> installedNames = StoreUtils::meta->GetInstalled(StoreUtils::store->GetUniStoreTitle(), StoreUtils::entries[storeEntry]->GetTitle()); // Return a vector from all installed entries.
+
+				if (!entryNames.empty() && !installedNames.empty()) { // Ensure both aren't empty.
+					for (int i = 0; i < (int)entryNames.size(); i++) {
+						for (int i2 = 0; i2 < (int)installedNames.size(); i2++) {
+							if (entryNames[i] == installedNames[i2]) { // If name matches with installed title, add to queue.
+								/* Add to Queue. */
+								StoreUtils::AddToQueue(entries[storeEntry]->GetEntryIndex(), entryNames[i2], entries[storeEntry]->GetTitle(), entries[storeEntry]->GetLastUpdated());
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+/*
+	Add all entries with an available update and that are installed to the queue.
+*/
+void StoreUtils::UpdateAll() {
+	if (StoreUtils::store && StoreUtils::store->GetValid() && StoreUtils::meta && !StoreUtils::entries.empty()) { // Ensure all is valid.
+		int count = 0;
+
+		for (int storeEntry = 0; storeEntry < (int)StoreUtils::entries.size(); storeEntry++) {
+			if (StoreUtils::entries[storeEntry] && StoreUtils::entries[storeEntry]->GetUpdateAvl() && StoreUtils::entries[storeEntry]->GetInstalled()) {
+				count++;
+			}
+		}
+
+		if (count == 0) {
+			Msg::waitMsg(Lang::get("NO_UPDATES_AVAILABLE"));
+			return;
+		}
+
+		char prompt[256];
+		snprintf(prompt, sizeof(prompt), Lang::get("UPDATE_ALL_CONFIRM").c_str(), count);
+		if (!Msg::promptMsg(prompt)) return;
+
+		for (int storeEntry = 0; storeEntry < (int)StoreUtils::entries.size(); storeEntry++) {
+			if (StoreUtils::entries[storeEntry] && StoreUtils::entries[storeEntry]->GetUpdateAvl() && StoreUtils::entries[storeEntry]->GetInstalled()) { // Ensure pointer is valid and an update is available.
 				const std::vector<std::string> entryNames = StoreUtils::store->GetDownloadList(StoreUtils::entries[storeEntry]->GetEntryIndex()); // Return a vector of all Download Entries.
 				const std::vector<std::string> installedNames = StoreUtils::meta->GetInstalled(StoreUtils::store->GetUniStoreTitle(), StoreUtils::entries[storeEntry]->GetTitle()); // Return a vector from all installed entries.
 

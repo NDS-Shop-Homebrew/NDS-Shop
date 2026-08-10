@@ -31,6 +31,8 @@ static const std::vector<Structs::ButtonPos> buttons = {
 	{ 71, 60, 104, 16 },
 	{ 71, 80, 104, 16 },
 	{ 71, 100, 104, 16 },
+	{ 71, 120, 104, 16 },
+	{ 71, 140, 104, 16 },
 
 	{ 201, 60, 104, 16 },
 	{ 201, 80, 104, 16 },
@@ -58,6 +60,12 @@ static const uint8_t GetType(SortType st) {
 
 		case SortType::LAST_UPDATED:
 			return 2;
+
+		case SortType::SIZE:
+			return 3;
+
+		case SortType::UPDATE:
+			return 4;
 	}
 
 	return 1;
@@ -76,27 +84,29 @@ void StoreUtils::DrawSorting(bool asc, SortType st) {
 
 	/* Sort By. */
 	Gui::DrawString(buttons[0].x + 1, buttons[0].y - 20, 0.6f, UIThemes->TextColor(), Lang::get("SORT_BY"), 90, 0, font);
-	for (int i = 0; i < 3; i++) {
+	for (int i = 0; i < 5; i++) {
 		DrawCheck(i, i == GetType(st));
 	}
 
 	Gui::DrawString(buttons[0].x + 21, buttons[0].y + 2, 0.4f, UIThemes->TextColor(), Lang::get("TITLE"), 80, 0, font);
 	Gui::DrawString(buttons[1].x + 21, buttons[1].y + 2, 0.4f, UIThemes->TextColor(), Lang::get("AUTHOR"), 80, 0, font);
 	Gui::DrawString(buttons[2].x + 21, buttons[2].y + 2, 0.4f, UIThemes->TextColor(), Lang::get("LAST_UPDATED"), 80, 0, font);
+	Gui::DrawString(buttons[3].x + 21, buttons[3].y + 2, 0.4f, UIThemes->TextColor(), Lang::get("SIZE"), 80, 0, font);
+	Gui::DrawString(buttons[4].x + 21, buttons[4].y + 2, 0.4f, UIThemes->TextColor(), Lang::get("UPDATE"), 80, 0, font);
 
 	/* Direction. */
-	Gui::DrawString(buttons[3].x + 1, buttons[3].y - 20, 0.6f, UIThemes->TextColor(), Lang::get("DIRECTION"), 80, 0, font);
-	DrawCheck(3, asc);
-	DrawCheck(4, !asc);
-	Gui::DrawString(buttons[3].x + 21, buttons[3].y + 2, 0.4f, UIThemes->TextColor(), Lang::get("ASCENDING"), 80, 0, font);
-	Gui::DrawString(buttons[4].x + 21, buttons[4].y + 2, 0.4f, UIThemes->TextColor(), Lang::get("DESCENDING"), 80, 0, font);
+	Gui::DrawString(buttons[5].x + 1, buttons[5].y - 20, 0.6f, UIThemes->TextColor(), Lang::get("DIRECTION"), 80, 0, font);
+	DrawCheck(5, asc);
+	DrawCheck(6, !asc);
+	Gui::DrawString(buttons[5].x + 21, buttons[5].y + 2, 0.4f, UIThemes->TextColor(), Lang::get("ASCENDING"), 80, 0, font);
+	Gui::DrawString(buttons[6].x + 21, buttons[6].y + 2, 0.4f, UIThemes->TextColor(), Lang::get("DESCENDING"), 80, 0, font);
 
 	/* Top Style. */
-	Gui::DrawString(buttons[5].x + 1, buttons[5].y - 20, 0.6f, UIThemes->TextColor(), Lang::get("TOP_STYLE"), 90, 0, font);
-	DrawCheck(5, config->list());
-	DrawCheck(6, !config->list());
-	Gui::DrawString(buttons[5].x + 21, buttons[5].y + 2, 0.4f, UIThemes->TextColor(), Lang::get("LIST"), 90, 0, font);
-	Gui::DrawString(buttons[6].x + 21, buttons[6].y + 2, 0.4f, UIThemes->TextColor(), Lang::get("GRID"), 90, 0, font);
+	Gui::DrawString(buttons[7].x + 1, buttons[7].y - 20, 0.6f, UIThemes->TextColor(), Lang::get("TOP_STYLE"), 90, 0, font);
+	DrawCheck(7, config->list());
+	DrawCheck(8, !config->list());
+	Gui::DrawString(buttons[7].x + 21, buttons[7].y + 2, 0.4f, UIThemes->TextColor(), Lang::get("LIST"), 90, 0, font);
+	Gui::DrawString(buttons[8].x + 21, buttons[8].y + 2, 0.4f, UIThemes->TextColor(), Lang::get("GRID"), 90, 0, font);
 }
 
 /*
@@ -129,23 +139,31 @@ void StoreUtils::SortHandle(bool &asc, SortType &st) {
 				st = SortType::LAST_UPDATED;
 				StoreUtils::SortEntries(asc, st);
 
-			/* Ascending | Descending Part. */
 			} else if (touching(touch, buttons[3])) {
-				asc = true;
+				st = SortType::SIZE;
 				StoreUtils::SortEntries(asc, st);
 
 			} else if (touching(touch, buttons[4])) {
+				st = SortType::UPDATE;
+				StoreUtils::SortEntries(asc, st);
+
+			/* Ascending | Descending Part. */
+			} else if (touching(touch, buttons[5])) {
+				asc = true;
+				StoreUtils::SortEntries(asc, st);
+
+			} else if (touching(touch, buttons[6])) {
 				asc = false;
 				StoreUtils::SortEntries(asc, st);
 
-			} else if (touching(touch, buttons[5])) {
+			} else if (touching(touch, buttons[7])) {
 				if (config->list()) return;
 				config->list(true);
 				StoreUtils::store->SetEntry(0);
 				StoreUtils::store->SetScreenIndx(0);
 				StoreUtils::store->SetBox(0);
 
-			} else if (touching(touch, buttons[6])) {
+			} else if (touching(touch, buttons[8])) {
 				if (!config->list()) return;
 				config->list(false);
 				StoreUtils::store->SetEntry(0);

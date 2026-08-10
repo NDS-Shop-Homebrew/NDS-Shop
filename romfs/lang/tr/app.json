@@ -99,6 +99,7 @@
 	"NO_LICENSE": "Lisans Yok",
 	"NO_SCREENSHOTS_AVAILABLE": "Ekran Görüntüsü Yok",
 	"NOT_IMPLEMENTED": "Henüz Uygulanmadı",
+	"NO_UPDATES_AVAILABLE": "Kullanılabilir güncelleme yok",
 	"OP_COPYING": "Kopyalanıyor",
 	"OP_DELETING": "Siliniyor",
 	"OP_DOWNLOADING": "İndiriliyor",
@@ -146,5 +147,8 @@
 	"UPDATING_SPRITE_SHEET": "Model Tablosu Güncelleniyor...",
 	"UPDATING_SPRITE_SHEET2": "%i / %i Model Tablosu Güncelleniyor...",
 	"UPDATING_UNISTORE": "UniStore Güncelleniyor...",
+	"UPDATE": "Güncelleme",
+	"UPDATE_ALL": "Tümünü güncelle",
+	"UPDATE_ALL_CONFIRM": "%i güncelleme mevcut, hepsi sıraya eklensin mi?",
 	"VERSION": "Sürüm"
 }

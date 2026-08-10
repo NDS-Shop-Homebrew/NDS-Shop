@@ -56,6 +56,9 @@ public:
 	bool GetUpdateAvl() const { return this->UpdateAvailable; };
 	void SetUpdateAvl(bool v) { this->UpdateAvailable = v; };
 
+	bool GetInstalled() const { return this->Installed; };
+	void SetInstalled(bool v) { this->Installed = v; };
+
 	void SetMark(int marks) {
 		this->Marks = marks;
 		this->MarkString = StringUtils::GetMarkString(this->Marks);
@@ -66,7 +69,7 @@ private:
 	C2D_Image Icon;
 	int SheetIndex, EntryIndex, Marks;
 	std::vector<std::string> FullCategory, FullConsole, Sizes, Types, Screenshots, ScreenshotNames;
-	bool UpdateAvailable;
+	bool UpdateAvailable, Installed;
 };
 
 #endif

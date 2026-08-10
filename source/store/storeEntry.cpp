@@ -19,6 +19,7 @@
 *   Any changes to the code must be clearly marked as such to avoid confusion.
 */
 
+#include "scriptUtils.hpp"
 #include "storeEntry.hpp"
 
 /*
@@ -52,6 +53,19 @@ StoreEntry::StoreEntry(const std::unique_ptr<Store> &store, const std::unique_pt
 	this->Marks = meta->GetMarks(store->GetUniStoreTitle(), this->Title);
 
 	const std::vector<std::string> entries = store->GetDownloadList(index);
+
+	/* Installed: any metadata installed entry OR any download script whose output exists on the SD card. */
+	this->Installed = false;
+
+	if (!meta->GetInstalled(store->GetUniStoreTitle(), this->Title).empty()) {
+		this->Installed = true;
+
+	} else if (store->GetValid() && (int)store->GetJson()["storeContent"].size() > index) {
+		for (int i = 0; i < (int)entries.size() && !this->Installed; i++) {
+			const nlohmann::json &download = store->GetJson()["storeContent"][index].value(entries[i], nlohmann::json());
+			if (!download.is_null() && ScriptUtils::IsInstalled(download)) this->Installed = true;
+		}
+	}
 
 	if (!entries.empty()) {
 		for (int i = 0; i < (int)entries.size(); i++) {

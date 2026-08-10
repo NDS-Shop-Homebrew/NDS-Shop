@@ -99,6 +99,7 @@
 	"NO_LICENSE": "Brak licencji",
 	"NO_SCREENSHOTS_AVAILABLE": "Brak dostępnych zrzutów ekranu",
 	"NOT_IMPLEMENTED": "Jeszcze nie zaimplementowane",
+	"NO_UPDATES_AVAILABLE": "Brak dostępnych aktualizacji",
 	"OP_COPYING": "Kopiowanie",
 	"OP_DELETING": "Usuwanie",
 	"OP_DOWNLOADING": "Pobieranie",
@@ -146,5 +147,8 @@
 	"UPDATING_SPRITE_SHEET": "Aktualizowanie tekstur...",
 	"UPDATING_SPRITE_SHEET2": "Aktualizowanie tekstury %i z %i...",
 	"UPDATING_UNISTORE": "Aktualizowanie UniStore...",
+	"UPDATE": "Aktualizacja",
+	"UPDATE_ALL": "Zaktualizuj wszystko",
+	"UPDATE_ALL_CONFIRM": "%i aktualizacji dostępnych, dodać wszystkie do kolejki?",
 	"VERSION": "Wersja"
 }

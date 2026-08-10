@@ -99,6 +99,7 @@
 	"NO_LICENSE": "Geen Licentie",
 	"NO_SCREENSHOTS_AVAILABLE": "Geen Schermafbeeldingen beschikbaar",
 	"NOT_IMPLEMENTED": "Nog Niet Geïmplementeerd",
+	"NO_UPDATES_AVAILABLE": "Geen updates beschikbaar",
 	"OP_COPYING": "Kopiëren",
 	"OP_DELETING": "Verwijderen",
 	"OP_DOWNLOADING": "Downloaden",
@@ -146,5 +147,8 @@
 	"UPDATING_SPRITE_SHEET": "Spritesheet bijwerken...",
 	"UPDATING_SPRITE_SHEET2": "Bijwerken Spritesheet %i van %i...",
 	"UPDATING_UNISTORE": "UniStore bijwerken...",
+	"UPDATE": "Update",
+	"UPDATE_ALL": "Alles bijwerken",
+	"UPDATE_ALL_CONFIRM": "%i updates beschikbaar, alles aan de wachtrij toevoegen?",
 	"VERSION": "Versie"
 }

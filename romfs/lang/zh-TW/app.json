@@ -99,6 +99,7 @@
 	"NO_LICENSE": "無授權",
 	"NO_SCREENSHOTS_AVAILABLE": "無可用螢幕截圖",
 	"NOT_IMPLEMENTED": "尚未實現",
+	"NO_UPDATES_AVAILABLE": "沒有可用的更新",
 	"OP_COPYING": "複製中",
 	"OP_DELETING": "刪除中",
 	"OP_DOWNLOADING": "下載中",
@@ -146,5 +147,8 @@
 	"UPDATING_SPRITE_SHEET": "正在更新精靈表...",
 	"UPDATING_SPRITE_SHEET2": "正在更新精靈表 %i 之 %i...",
 	"UPDATING_UNISTORE": "正在更新 UniStore...",
+	"UPDATE": "更新",
+	"UPDATE_ALL": "全部更新",
+	"UPDATE_ALL_CONFIRM": "有 %i 個更新可用，全部加入佇列？",
 	"VERSION": "版本"
 }

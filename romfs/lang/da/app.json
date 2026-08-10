@@ -99,6 +99,7 @@
 	"NO_LICENSE": "Ingen licens",
 	"NO_SCREENSHOTS_AVAILABLE": "Ingen screenshots tilgængelige",
 	"NOT_IMPLEMENTED": "Ikke implementeret endnu",
+	"NO_UPDATES_AVAILABLE": "Ingen opdateringer tilgængelige",
 	"OP_COPYING": "Kopierer",
 	"OP_DELETING": "Sletter…",
 	"OP_DOWNLOADING": "Nedhenter",
@@ -146,5 +147,8 @@
 	"UPDATING_SPRITE_SHEET": "Opdaterer Spritesheet...",
 	"UPDATING_SPRITE_SHEET2": "Indlæser Spritesheet %i af %i...",
 	"UPDATING_UNISTORE": "Opdaterer UniStore...",
+	"UPDATE": "Opdatering",
+	"UPDATE_ALL": "Opdater alle",
+	"UPDATE_ALL_CONFIRM": "%i opdateringer tilgængelige, tilføj alle til køen?",
 	"VERSION": "Version"
 }

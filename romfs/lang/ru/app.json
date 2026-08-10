@@ -99,6 +99,7 @@
 	"NO_LICENSE": "Нет лицензии",
 	"NO_SCREENSHOTS_AVAILABLE": "Нет доступных скриншотов",
 	"NOT_IMPLEMENTED": "Ещё не реализовано",
+	"NO_UPDATES_AVAILABLE": "Нет доступных обновлений",
 	"OP_COPYING": "Копирование",
 	"OP_DELETING": "Удаление",
 	"OP_DOWNLOADING": "Скачивание",
@@ -146,5 +147,8 @@
 	"UPDATING_SPRITE_SHEET": "Загрузка таблицы спрайтов...",
 	"UPDATING_SPRITE_SHEET2": "Загрузка таблицы спрайтов %i из %i...",
 	"UPDATING_UNISTORE": "Обновление UniStore...",
+	"UPDATE": "Обновление",
+	"UPDATE_ALL": "Обновить всё",
+	"UPDATE_ALL_CONFIRM": "%i обновлений доступно, добавить все в очередь?",
 	"VERSION": "Версия"
 }

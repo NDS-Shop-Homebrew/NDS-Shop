@@ -99,6 +99,7 @@
 	"NO_LICENSE": "No License",
 	"NO_SCREENSHOTS_AVAILABLE": "No Screenshots available",
 	"NOT_IMPLEMENTED": "Not Implemented Yet",
+	"NO_UPDATES_AVAILABLE": "Žádné dostupné aktualizace",
 	"OP_COPYING": "Copying",
 	"OP_DELETING": "Deleting",
 	"OP_DOWNLOADING": "Získání",
@@ -146,5 +147,8 @@
 	"UPDATING_SPRITE_SHEET": "Updating Spritesheet...",
 	"UPDATING_SPRITE_SHEET2": "Updating Spritesheet %i of %i...",
 	"UPDATING_UNISTORE": "Updating UniStore...",
+	"UPDATE": "Aktualizace",
+	"UPDATE_ALL": "Aktualizovat vše",
+	"UPDATE_ALL_CONFIRM": "%i aktualizací k dispozici, přidat všechny do fronty?",
 	"VERSION": "Verze"
 }

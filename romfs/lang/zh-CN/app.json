@@ -99,6 +99,7 @@
 	"NO_LICENSE": "没有许可证",
 	"NO_SCREENSHOTS_AVAILABLE": "无可用屏幕截图",
 	"NOT_IMPLEMENTED": "尚未实现",
+	"NO_UPDATES_AVAILABLE": "没有可用的更新",
 	"OP_COPYING": "正在复制",
 	"OP_DELETING": "删除中",
 	"OP_DOWNLOADING": "正在下载",
@@ -146,5 +147,8 @@
 	"UPDATING_SPRITE_SHEET": "正在更新贴图集……",
 	"UPDATING_SPRITE_SHEET2": "正在更新贴图集 %i / %i……",
 	"UPDATING_UNISTORE": "正在更新 UniStore...",
+	"UPDATE": "更新",
+	"UPDATE_ALL": "全部更新",
+	"UPDATE_ALL_CONFIRM": "有 %i 个更新可用，全部加入队列？",
 	"VERSION": "版本"
 }
