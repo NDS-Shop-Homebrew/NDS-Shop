@@ -99,6 +99,7 @@
 	"NO_LICENSE": "Sin licencia",
 	"NO_SCREENSHOTS_AVAILABLE": "No hay capturas disponibles",
 	"NOT_IMPLEMENTED": "Aún no implementado",
+	"NO_UPDATES_AVAILABLE": "No hay actualizaciones disponibles",
 	"OP_COPYING": "Copiando",
 	"OP_DELETING": "Borrando",
 	"OP_DOWNLOADING": "Descargando",
@@ -146,5 +147,8 @@
 	"UPDATING_SPRITE_SHEET": "Actualizando Spritesheet...",
 	"UPDATING_SPRITE_SHEET2": "Actualizando Spritesheet %i de %i...",
 	"UPDATING_UNISTORE": "Actualizando UniStore...",
+	"UPDATE": "Actualización",
+	"UPDATE_ALL": "Actualizar todo",
+	"UPDATE_ALL_CONFIRM": "%i actualizaciones disponibles, ¿añadirlas todas a la cola?",
 	"VERSION": "Versión"
 }

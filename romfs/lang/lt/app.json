@@ -99,6 +99,7 @@
 	"NO_LICENSE": "No License",
 	"NO_SCREENSHOTS_AVAILABLE": "No Screenshots available",
 	"NOT_IMPLEMENTED": "Not Implemented Yet",
+	"NO_UPDATES_AVAILABLE": "Nėra galimų atnaujinimų",
 	"OP_COPYING": "Copying",
 	"OP_DELETING": "Deleting",
 	"OP_DOWNLOADING": "Downloading",
@@ -146,5 +147,8 @@
 	"UPDATING_SPRITE_SHEET": "Updating Spritesheet...",
 	"UPDATING_SPRITE_SHEET2": "Updating Spritesheet %i of %i...",
 	"UPDATING_UNISTORE": "Updating UniStore...",
+	"UPDATE": "Atnaujinimas",
+	"UPDATE_ALL": "Atnaujinti viską",
+	"UPDATE_ALL_CONFIRM": "Yra %i atnaujinimų, pridėti visus į eilę?",
 	"VERSION": "Version"
 }

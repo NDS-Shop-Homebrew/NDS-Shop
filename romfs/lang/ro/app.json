@@ -99,6 +99,7 @@
 	"NO_LICENSE": "Nicio licență",
 	"NO_SCREENSHOTS_AVAILABLE": "Nicio captură de ecran disponibilă",
 	"NOT_IMPLEMENTED": "Nu este Încă Implementat(ă)",
+	"NO_UPDATES_AVAILABLE": "Nicio actualizare disponibilă",
 	"OP_COPYING": "Se copiază",
 	"OP_DELETING": "Se şterge",
 	"OP_DOWNLOADING": "Se descarcă",
@@ -146,5 +147,8 @@
 	"UPDATING_SPRITE_SHEET": "Se actualizează Spritesheet...",
 	"UPDATING_SPRITE_SHEET2": "Se actualizează Spritesheet %i din %i...",
 	"UPDATING_UNISTORE": "Se actualizează UniStore...",
+	"UPDATE": "Actualizare",
+	"UPDATE_ALL": "Actualizează tot",
+	"UPDATE_ALL_CONFIRM": "%i actualizări disponibile, adaugă-le pe toate în coadă?",
 	"VERSION": "Versiune"
 }

@@ -99,6 +99,7 @@
 	"NO_LICENSE": "라이센스 없음",
 	"NO_SCREENSHOTS_AVAILABLE": "사용가능한 스크린샷 없음",
 	"NOT_IMPLEMENTED": "아직 구현되지 않음",
+	"NO_UPDATES_AVAILABLE": "사용 가능한 업데이트가 없습니다",
 	"OP_COPYING": "복사 중",
 	"OP_DELETING": "삭제 중",
 	"OP_DOWNLOADING": "다운로드 중",
@@ -146,5 +147,8 @@
 	"UPDATING_SPRITE_SHEET": "스프라이트시트 업데이트 중...",
 	"UPDATING_SPRITE_SHEET2": "스프라이트시트 업데이트 중 %i / %i...",
 	"UPDATING_UNISTORE": "UniStore 업데이트 중...",
+	"UPDATE": "업데이트",
+	"UPDATE_ALL": "모두 업데이트",
+	"UPDATE_ALL_CONFIRM": "업데이트 %i개 사용 가능, 모두 큐에 추가할까요?",
 	"VERSION": "버전"
 }

@@ -99,6 +99,7 @@
 	"NO_LICENSE": "Sem licença",
 	"NO_SCREENSHOTS_AVAILABLE": "Nenhuma captura de ecrã disponível",
 	"NOT_IMPLEMENTED": "Ainda não implementado",
+	"NO_UPDATES_AVAILABLE": "Nenhuma atualização disponível",
 	"OP_COPYING": "A copiar",
 	"OP_DELETING": "A apagar",
 	"OP_DOWNLOADING": "A descarregar",
@@ -146,5 +147,8 @@
 	"UPDATING_SPRITE_SHEET": "A atualizar ficha de sprites...",
 	"UPDATING_SPRITE_SHEET2": "A atualizar ficha de sprites %i de %i...",
 	"UPDATING_UNISTORE": "A atualizar UniStore...",
+	"UPDATE": "Atualização",
+	"UPDATE_ALL": "Atualizar tudo",
+	"UPDATE_ALL_CONFIRM": "%i atualizações disponíveis, adicioná-las todas à fila?",
 	"VERSION": "Versão"
 }

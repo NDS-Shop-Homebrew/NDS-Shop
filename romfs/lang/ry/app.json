@@ -99,6 +99,7 @@
 	"NO_LICENSE": "ライセンスぬあいびらん",
 	"NO_SCREENSHOTS_AVAILABLE": "スクリーンショットーあいびらん",
 	"NOT_IMPLEMENTED": "なーら実装さりやびらん",
+	"NO_UPDATES_AVAILABLE": "No updates available",
 	"OP_COPYING": "コピー中",
 	"OP_DELETING": "削除中",
 	"OP_DOWNLOADING": "ダウンロード中",
@@ -146,5 +147,8 @@
 	"UPDATING_SPRITE_SHEET": "スプライトシート更新そーいびーん……",
 	"UPDATING_SPRITE_SHEET2": "スプライトシート%i/%i更新そーいびーん……",
 	"UPDATING_UNISTORE": "UniStore更新そーいびーん……",
+	"UPDATE": "Update",
+	"UPDATE_ALL": "Update All",
+	"UPDATE_ALL_CONFIRM": "%i updates available, add all to the queue?",
 	"VERSION": "バージョン"
 }

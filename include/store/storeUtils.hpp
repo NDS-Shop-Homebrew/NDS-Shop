@@ -30,7 +30,9 @@
 enum class SortType : uint8_t {
 	TITLE,
 	AUTHOR,
-	LAST_UPDATED
+	LAST_UPDATED,
+	SIZE,
+	UPDATE
 };
 
 namespace StoreUtils {
@@ -63,8 +65,8 @@ namespace StoreUtils {
 	void QueueMenuHandle(int &queueIndex, int &storeMode);
 
 	/* Search + Favorite Menu. */
-	void DrawSearchMenu(const std::vector<bool> &searchIncludes, const std::string &searchResult, int marks, bool updateFilter, bool isAND);
-	void SearchHandle(std::vector<bool> &searchIncludes, std::string &searchResult, int &marks, bool &updateFilter, bool ascending, SortType sorttype, bool &isAND);
+	void DrawSearchMenu(const std::vector<bool> &searchIncludes, const std::string &searchResult, int marks, bool updateFilter, bool installedFilter, bool isAND);
+	void SearchHandle(std::vector<bool> &searchIncludes, std::string &searchResult, int &marks, bool &updateFilter, bool &installedFilter, bool ascending, SortType sorttype, bool &isAND);
 
 	/* Mark Menu. */
 	void DisplayMarkBox(int marks);
@@ -101,9 +103,15 @@ namespace StoreUtils {
 	bool compareUpdateDescending(const std::unique_ptr<StoreEntry> &a, const std::unique_ptr<StoreEntry> &b);
 	bool compareUpdateAscending(const std::unique_ptr<StoreEntry> &a, const std::unique_ptr<StoreEntry> &b);
 
+	bool compareSizeDescending(const std::unique_ptr<StoreEntry> &a, const std::unique_ptr<StoreEntry> &b);
+	bool compareSizeAscending(const std::unique_ptr<StoreEntry> &a, const std::unique_ptr<StoreEntry> &b);
+
+	bool compareInstalledUpdateDescending(const std::unique_ptr<StoreEntry> &a, const std::unique_ptr<StoreEntry> &b);
+	bool compareInstalledUpdateAscending(const std::unique_ptr<StoreEntry> &a, const std::unique_ptr<StoreEntry> &b);
+
 	void SortEntries(bool Ascending, SortType sorttype);
 
-	void search(const std::string &query, bool title, bool author, bool category, bool console, int selectedMarks, bool updateAvl, bool isAND);
+	void search(const std::string &query, bool title, bool author, bool category, bool console, int selectedMarks, bool updateAvl, bool installedAvl, bool isAND);
 
 	void ResetAll();
 
@@ -111,6 +119,7 @@ namespace StoreUtils {
 
 	void AddToQueue(int index, const std::string &entry, const std::string &entryName, const std::string &lUpdated);
 	void AddAllToQueue();
+	void UpdateAll();
 };
 
 #endif

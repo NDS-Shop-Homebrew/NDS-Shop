@@ -99,6 +99,7 @@
 	"NO_LICENSE": "No License",
 	"NO_SCREENSHOTS_AVAILABLE": "No Screenshots available",
 	"NOT_IMPLEMENTED": "Not Implemented Yet",
+	"NO_UPDATES_AVAILABLE": "No updates available",
 	"OP_COPYING": "Copying",
 	"OP_DELETING": "Deleting",
 	"OP_DOWNLOADING": "Downloading",
@@ -146,5 +147,8 @@
 	"UPDATING_SPRITE_SHEET": "Updating Spritesheet...",
 	"UPDATING_SPRITE_SHEET2": "Updating Spritesheet %i of %i...",
 	"UPDATING_UNISTORE": "Updating UniStore...",
+	"UPDATE": "Update",
+	"UPDATE_ALL": "Update All",
+	"UPDATE_ALL_CONFIRM": "%i updates available, add all to the queue?",
 	"VERSION": "Version"
 }

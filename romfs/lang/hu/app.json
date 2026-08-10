@@ -99,6 +99,7 @@
 	"NO_LICENSE": "Nincs licenc",
 	"NO_SCREENSHOTS_AVAILABLE": "Képernyőképek nem elérhetők",
 	"NOT_IMPLEMENTED": "Még nem implementált",
+	"NO_UPDATES_AVAILABLE": "Nincs elérhető frissítés",
 	"OP_COPYING": "Másolás",
 	"OP_DELETING": "Törlés",
 	"OP_DOWNLOADING": "Letöltés",
@@ -146,5 +147,8 @@
 	"UPDATING_SPRITE_SHEET": "A spritelap frissítése...",
 	"UPDATING_SPRITE_SHEET2": "A spritelap frissítése %i/%i...",
 	"UPDATING_UNISTORE": "UniStore frissítése...",
+	"UPDATE": "Frissítés",
+	"UPDATE_ALL": "Összes frissítése",
+	"UPDATE_ALL_CONFIRM": "%i frissítés érhető el, mind hozzáadható a sorhoz?",
 	"VERSION": "Verzió"
 }

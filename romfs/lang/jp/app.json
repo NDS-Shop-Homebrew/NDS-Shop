@@ -99,6 +99,7 @@
 	"NO_LICENSE": "ライセンスがありません",
 	"NO_SCREENSHOTS_AVAILABLE": "スクリーンショットはありません",
 	"NOT_IMPLEMENTED": "まだ実装されていません",
+	"NO_UPDATES_AVAILABLE": "利用可能なアップデートはありません",
 	"OP_COPYING": "コピー中",
 	"OP_DELETING": "削除中",
 	"OP_DOWNLOADING": "ダウンロード中",
@@ -146,5 +147,8 @@
 	"UPDATING_SPRITE_SHEET": "スプライトシートを更新しています……",
 	"UPDATING_SPRITE_SHEET2": "スプライトシート%i/%iを更新しています……",
 	"UPDATING_UNISTORE": "UniStoreを更新しています……",
+	"UPDATE": "更新",
+	"UPDATE_ALL": "すべて更新",
+	"UPDATE_ALL_CONFIRM": "利用可能なアップデートが%i件あります。すべてキューに追加しますか？",
 	"VERSION": "バージョン"
 }
