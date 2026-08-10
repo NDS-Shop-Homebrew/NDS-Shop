@@ -6,7 +6,9 @@
 ### Requirements
 - A modded Nintendo 3DS (XL) / 2DS (XL)
 - An SD card with at least 500 MB for game installation
-- The latest version (not yet available)
+
+### Latest release
+- [v1.0.0](https://github.com/NDS-Shop-Homebrew/NDS-Shop/releases/latest) — grab the `.cia` or `.3dsx` asset
 
 ---
 
@@ -33,7 +35,7 @@ To build NDS-Shop from source, you will need to set up a system with devkitARM, 
 ##### Cloning the repo:
 
 Run the following command to clone the repository:  
-`git clone --recursive https://gitlab.com/nds-shop-team/nds-shop`
+`git clone --recursive https://github.com/NDS-Shop-Homebrew/NDS-Shop.git`
 
 Then, run the `compile.bat` script. To perform a clean build, use the `clean.bat` command.
 </details></details>
