@@ -44,9 +44,9 @@ BANNERTOOL 	?= bannertool
 
 endif
 
-CURRENT_VERSION := $(shell git describe --abbrev=0 --tags)
+CURRENT_VERSION := $(shell git describe --abbrev=0 --tags 2>/dev/null || echo v0.0.0)
 
-GIT_TAG := $(shell git describe --abbrev=0 --tags)
+GIT_TAG := $(CURRENT_VERSION)
 GIT_SHA := $(shell git rev-parse --short=7 HEAD)
 
 # If on a tagged commit, use just the tag
@@ -68,23 +68,20 @@ $(shell printf "#ifndef VERSION_HPP\n#define VERSION_HPP\n\n#define VER_NUMBER \
 endif
 
 #---------------------------------------------------------------------------------
-# Version number
+# Version number (parsed from the git tag, e.g. v1.0.0 -> 1.0.0)
 #---------------------------------------------------------------------------------
-ifneq ($(shell echo $(shell git describe --tags) | head -c 2 | tail -c 1),)
-VERSION_MAJOR := $(shell echo $(shell git describe --tags) | head -c 2 | tail -c 1)
-else
+VERSION_STR := $(patsubst v%,%,$(GIT_TAG))
+VERSION_MAJOR := $(word 1,$(subst ., ,$(VERSION_STR)))
+VERSION_MINOR := $(word 2,$(subst ., ,$(VERSION_STR)))
+VERSION_MICRO := $(word 3,$(subst ., ,$(VERSION_STR)))
+
+ifeq ($(strip $(VERSION_MAJOR)),)
 VERSION_MAJOR := 0
 endif
-
-ifneq ($(shell echo $(shell git describe --tags) | head -c 4 | tail -c 1),)
-VERSION_MINOR := $(shell echo $(shell git describe --tags) | head -c 4 | tail -c 1)
-else
+ifeq ($(strip $(VERSION_MINOR)),)
 VERSION_MINOR := 0
 endif
-
-ifneq ($(shell echo $(shell git describe --tags) | head -c 6 | tail -c 1),)
-VERSION_MICRO := $(shell echo $(shell git describe --tags) | head -c 6 | tail -c 1)
-else
+ifeq ($(strip $(VERSION_MICRO)),)
 VERSION_MICRO := 0
 endif
 
