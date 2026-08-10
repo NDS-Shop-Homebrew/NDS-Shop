@@ -51,6 +51,8 @@ namespace ScriptUtils {
 	Result extractFile(const std::string &file, const std::string &input, const std::string &output, const std::string &message, bool isARG = false);
 
 	Result runFunctions(nlohmann::json storeJson, int selection, const std::string &entry);
+
+	bool IsInstalled(const nlohmann::json &script);
 };
 
 #endif
