@@ -34,7 +34,10 @@
 #include <curl/curl.h>
 #include <dirent.h>
 #include <malloc.h>
+#include <algorithm>
+#include <cstdlib>
 #include <regex>
+#include <sstream>
 #include <string>
 #include <unistd.h>
 #include <vector>
@@ -771,6 +774,39 @@ bool DownloadSpriteSheet(const std::string &URL, const std::string &file) {
 }
 
 /*
+	Compare two semantic versions (x.y.z), ignoring a leading 'v'.
+	@return < 0 if a < b, 0 if equal, > 0 if a > b.
+*/
+static int compareVersions(const std::string &a, const std::string &b) {
+	std::string va = a, vb = b;
+	if (!va.empty() && (va[0] == 'v' || va[0] == 'V')) va.erase(0, 1);
+	if (!vb.empty() && (vb[0] == 'v' || vb[0] == 'V')) vb.erase(0, 1);
+
+	auto split = [](const std::string &s) {
+		std::vector<int> parts;
+		std::stringstream ss(s);
+		std::string token;
+		while (std::getline(ss, token, '.')) {
+			char *end = nullptr;
+			long num = strtol(token.c_str(), &end, 10);
+			if (end == token.c_str()) num = 0;
+			parts.push_back((int)num);
+		}
+		return parts;
+	};
+
+	std::vector<int> pa = split(va), pb = split(vb);
+	size_t count = std::max(pa.size(), pb.size());
+	for (size_t i = 0; i < count; i++) {
+		int x = i < pa.size() ? pa[i] : 0;
+		int y = i < pb.size() ? pb[i] : 0;
+		if (x < y) return -1;
+		if (x > y) return 1;
+	}
+	return 0;
+}
+
+/*
 	Checks for U-U updates.
 */
 NDSShopUpdate IsNDSShopUpdateAvailable() {
@@ -791,11 +827,7 @@ NDSShopUpdate IsNDSShopUpdateAvailable() {
 
 	CURL *hnd = curl_easy_init();
 
-	const char *url;
-	if (config->updatenightly()) url = "https://api.github.com/repos/NDS-Shop-Team/NDS-Shop/commits";
-	else url = "https://api.github.com/repos/NDS-Shop-Team/NDS-Shop/releases/latest";
-
-	ret = setupContext(hnd, url);
+	ret = setupContext(hnd, "https://api.github.com/repos/NDS-Shop-Homebrew/NDS-Shop/releases/latest");
 	if (ret != 0) {
 		socExit();
 		free(result_buf);
@@ -826,39 +858,20 @@ NDSShopUpdate IsNDSShopUpdateAvailable() {
 	if (nlohmann::json::accept(result_buf)) {
 		nlohmann::json parsedAPI = nlohmann::json::parse(result_buf);
 
-		if (config->updatenightly()) {
-			if (parsedAPI.is_array() && parsedAPI.size() > 0 && parsedAPI[0].contains("sha") && parsedAPI[0]["sha"].is_string()) {
-				socExit();
-				free(result_buf);
-				free(socubuf);
-				result_buf = nullptr;
-				result_sz = 0;
-				result_written = 0;
+		if (parsedAPI.contains("tag_name") && parsedAPI["tag_name"].is_string()) {
+			socExit();
+			free(result_buf);
+			free(socubuf);
+			result_buf = nullptr;
+			result_sz = 0;
+			result_written = 0;
 
-				NDSShopUpdate update = { false, "", "" };
-				update.Version = parsedAPI[0]["sha"].get_ref<const std::string &>().substr(0, 7);
-				if (parsedAPI[0].contains("commit") && parsedAPI[0]["commit"].is_object() && parsedAPI[0]["commit"].contains("message") && parsedAPI[0]["commit"]["message"].is_string())
-					update.Notes = parsedAPI[0]["commit"]["message"];
-				update.Notes.erase(remove(update.Notes.begin(), update.Notes.end(), '\r'), update.Notes.end()); // Remove the CRLF \r's.
-				update.Available = strcasecmp(update.Version.c_str(), GIT_SHA) != 0;
-				return update;
-			}
-		} else {
-			if (parsedAPI.contains("tag_name") && parsedAPI["tag_name"].is_string()) {
-				socExit();
-				free(result_buf);
-				free(socubuf);
-				result_buf = nullptr;
-				result_sz = 0;
-				result_written = 0;
-
-				NDSShopUpdate update = { false, "", "" };
-				update.Version = parsedAPI["tag_name"];
-				if (parsedAPI["body"].is_string()) update.Notes = parsedAPI["body"];
-				update.Notes.erase(remove(update.Notes.begin(), update.Notes.end(), '\r'), update.Notes.end()); // Remove the CRLF \r's.
-				update.Available = strcasecmp(update.Version.c_str(), C_V) > 0;
-				return update;
-			}
+			NDSShopUpdate update = { false, "", "" };
+			update.Version = parsedAPI["tag_name"];
+			if (parsedAPI["body"].is_string()) update.Notes = parsedAPI["body"];
+			update.Notes.erase(remove(update.Notes.begin(), update.Notes.end(), '\r'), update.Notes.end()); // Remove the CRLF \r's.
+			update.Available = compareVersions(update.Version, C_V) > 0;
+			return update;
 		}
 	}
 
@@ -922,13 +935,8 @@ void UpdateAction() {
 			if ((down & KEY_A) || (down & KEY_B) || (down & KEY_START) || (down & KEY_TOUCH)) confirmed = true;
 		}
 
-		Result dlRes;
-		if (config->updatenightly())
-			dlRes = ScriptUtils::downloadFile("https://raw.githubusercontent.com//NDS-Shop-Team/files/master/builds/NDS-Shop/NDS-Shop." + std::string(is3DSX ? "3dsx" : "cia"),
-					(is3DSX ? _3dsxPath : "sdmc:/NDS-Shop.cia"), Lang::get("DONLOADING_NDS_SHOP"), true);
-		else
-			dlRes = ScriptUtils::downloadRelease("NDS-Shop-Team/NDS-Shop", (is3DSX ? "NDS-Shop.3dsx" : "NDS-Shop.cia"),
-					(is3DSX ? _3dsxPath : "sdmc:/NDS-Shop.cia"), false, Lang::get("DONLOADING_NDS_SHOP"), true);
+		Result dlRes = ScriptUtils::downloadRelease("NDS-Shop-Homebrew/NDS-Shop", (is3DSX ? "NDS-Shop.3dsx" : "NDS-Shop.cia"),
+				(is3DSX ? _3dsxPath : "sdmc:/NDS-Shop.cia"), false, Lang::get("DONLOADING_NDS_SHOP"), true);
 
 		if (dlRes == ScriptState::NONE) {
 			if (is3DSX) {
@@ -976,7 +984,7 @@ std::vector<StoreList> FetchStores() {
 
 	CURL *hnd = curl_easy_init();
 
-	ret = setupContext(hnd, "https://github.com/NDS-Shop-Team/NDS-Shop/raw/main/resources/UniStores.json");
+	ret = setupContext(hnd, "https://github.com/NDS-Shop-Homebrew/NDS-Shop/raw/main/resources/UniStores.json");
 	if (ret != 0) {
 		socExit();
 		free(result_buf);
@@ -1105,7 +1113,7 @@ std::string GetChangelog() {
 
 	CURL *hnd = curl_easy_init();
 
-	ret = setupContext(hnd, "https://api.github.com/repos/NDS-Shop-Team/NDS-Shop/releases/latest");
+	ret = setupContext(hnd, "https://api.github.com/repos/NDS-Shop-Homebrew/NDS-Shop/releases/latest");
 	if (ret != 0) {
 		socExit();
 		free(result_buf);
