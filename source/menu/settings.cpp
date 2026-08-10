@@ -51,8 +51,7 @@ static const std::vector<Structs::ButtonPos> langButtons = {
 
 static const std::vector<Structs::ButtonPos> toggleAbles = {
 	{ 288, 44, 24, 24 },
-	{ 288, 110, 24, 24 },
-	{ 288, 180, 24, 24 }
+	{ 288, 110, 24, 24 }
 };
 
 static const std::vector<Structs::ButtonPos> dirButtons = {
@@ -167,11 +166,6 @@ static void DrawAutoUpdate(int selection) {
 	Gui::DrawString(47, 114, 0.5f, UIThemes->TextColor(), Lang::get("AUTO_UPDATE_UU"), 210, 0, font);
 	GFX::DrawToggle(toggleAbles[1].x, toggleAbles[1].y, config->updatecheck());
 	Gui::DrawString(47, 141, 0.4f, UIThemes->TextColor(), Lang::get("AUTO_UPDATE_UU_DESC"), 265, 0, font, C2D_WordWrap);
-
-	Gui::Draw_Rect(40, 180, 280, 24, (selection == 2 ? UIThemes->MarkSelected() : UIThemes->MarkUnselected()));
-	Gui::DrawString(47, 184, 0.5f, UIThemes->TextColor(), Lang::get("AUTO_UPDATE_NIGHTLY"), 210, 0, font);
-	GFX::DrawToggle(toggleAbles[2].x, toggleAbles[2].y, config->updatenightly());
-	Gui::DrawString(47, 211, 0.4f, UIThemes->TextColor(), Lang::get("AUTO_UPDATE_NIGHTLY_DESC"), 265, 0, font, C2D_WordWrap);
 }
 
 /*
@@ -443,7 +437,7 @@ static void AutoUpdateLogic(int &page, int &selection) {
 	}
 
 	if (hRepeat & KEY_DOWN) {
-		if (selection < 2) selection++;
+		if (selection < 1) selection++;
 	}
 
 	if (hRepeat & KEY_UP) {
@@ -460,9 +454,6 @@ static void AutoUpdateLogic(int &page, int &selection) {
 
 		} else if (touching(touch, toggleAbles[1])) {
 			config->updatecheck(!config->updatecheck());
-
-		} else if (touching(touch, toggleAbles[2])) {
-			config->updatenightly(!config->updatenightly());
 		}
 	}
 
@@ -474,10 +465,6 @@ static void AutoUpdateLogic(int &page, int &selection) {
 
 			case 1:
 				config->updatecheck(!config->updatecheck());
-				break;
-
-			case 2:
-				config->updatenightly(!config->updatenightly());
 				break;
 		}
 	}
@@ -588,7 +575,7 @@ static void LanguageLogic(int &page, int &selection, int &sPos) {
 		/* Check if language needs a custom font. */
 		if (l == "uk") {
 			if (access("sdmc:/3ds/Universal-Updater/font.bcfnt", F_OK) != 0) {
-				ScriptUtils::downloadFile("https://github.com/NDS-Shop-Team/files/raw/main/files/nds-shop.bcfnt", "sdmc:/3ds/Universal-Updater/font.bcfnt", Lang::get("DOWNLOADING_COMPATIBLE_FONT"), true);
+				ScriptUtils::downloadFile("https://github.com/NDS-Shop-Homebrew/files/raw/main/files/nds-shop.bcfnt", "sdmc:/3ds/Universal-Updater/font.bcfnt", Lang::get("DOWNLOADING_COMPATIBLE_FONT"), true);
 				Init::UnloadFont();
 			}
 
@@ -622,7 +609,7 @@ static void LanguageLogic(int &page, int &selection, int &sPos) {
 					/* Check if language needs a custom font. */
 					if (l == "uk") {
 						if (access("sdmc:/3ds/Universal-Updater/font.bcfnt", F_OK) != 0) {
-							ScriptUtils::downloadFile("https://github.com/NDS-Shop-Team/files/raw/main/files/nds-shop.bcfnt", "sdmc:/3ds/Universal-Updater/font.bcfnt", Lang::get("DOWNLOADING_COMPATIBLE_FONT"), true);
+							ScriptUtils::downloadFile("https://github.com/NDS-Shop-Homebrew/files/raw/main/files/nds-shop.bcfnt", "sdmc:/3ds/Universal-Updater/font.bcfnt", Lang::get("DOWNLOADING_COMPATIBLE_FONT"), true);
 							Init::UnloadFont();
 						}
 
@@ -653,7 +640,7 @@ static void LanguageLogic(int &page, int &selection, int &sPos) {
 
 		if (touching(touch, langButtons[6])) {
 			/* Download Font. */
-			ScriptUtils::downloadFile("https://github.com/NDS-Shop-Team/files/raw/main/files/nds-shop.bcfnt", "sdmc:/3ds/Universal-Updater/font.bcfnt", Lang::get("DOWNLOADING_COMPATIBLE_FONT"), true);
+			ScriptUtils::downloadFile("https://github.com/NDS-Shop-Homebrew/files/raw/main/files/nds-shop.bcfnt", "sdmc:/3ds/Universal-Updater/font.bcfnt", Lang::get("DOWNLOADING_COMPATIBLE_FONT"), true);
 			config->customfont(true);
 			Init::UnloadFont();
 			Init::LoadFont();
