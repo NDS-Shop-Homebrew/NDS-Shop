@@ -2,7 +2,7 @@ name: Build NDS-Shop
 
 on:
   push:
-    branches-ignore: [translation]
+    branches: [dev]
     tags:
       - 'v*'
     paths-ignore:
