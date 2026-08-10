@@ -1,0 +1,25 @@
+{
+	"Default": {
+		"BGColor": "#4B4B4B",
+		"BarColor": "#00C9FF",
+		"BarOutline": "#FFFFFF",
+		"BoxInside": "#4B4B4B",
+		"BoxSelected": "#00C9FF",
+		"BoxUnselected": "#4B4B4B",
+		"Description": "NDS-Shop Themes\n\nBy: NDS-Shop Team",
+		"DownListPrev": "#4B4B4B",
+		"EntryBar": "#00C9FF",
+		"EntryOutline": "#FFFFFF",
+		"MarkSelected": "#00C9FF",
+		"MarkUnselected": "#4B4B4B",
+		"ProgressbarIn": "#00C9FF",
+		"ProgressbarOut": "#000000",
+		"SearchBar": "#00C9FF",
+		"SearchBarOutline": "#FFFFFF",
+		"SideBarIconColor": "#FFFFFF",
+		"SideBarSelected": "#00C9FF",
+		"SideBarUnselected": "#4B4B4B",
+		"TextColor": "#FFFFFF"
+	}
+}
+
