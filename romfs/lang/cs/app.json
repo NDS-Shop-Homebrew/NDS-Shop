@@ -56,6 +56,7 @@
 	"DONE": "Hotovo!",
 	"DOWNLOAD_ERROR": "Při Stahování Došlo k Chybě!",
 	"DOWNLOAD_FAILED": "Stáhnout Nepovedlo se!",
+	"DOWNLOAD_FAILED_BATTERY": "Nízká baterie: stahování přerušeno!",
 	"DOWNLOAD_SPEED": "Rychlost: %lld KiB/s",
 	"DOWNLOADING": "Přenos... %s / %s (%.2f%%)",
 	"DOWNLOADING_COMPATIBLE_FONT": "Stahování písem která jsou kompatibilní...",

@@ -56,6 +56,7 @@
 	"DONE": "完成！",
 	"DOWNLOAD_ERROR": "下載發生錯誤",
 	"DOWNLOAD_FAILED": "下載失敗。",
+	"DOWNLOAD_FAILED_BATTERY": "電量過低：下載已中斷。",
 	"DOWNLOAD_SPEED": "速度： %lld KiB/s",
 	"DOWNLOADING": "下載中... %s / %s (%.2f%%)",
 	"DOWNLOADING_COMPATIBLE_FONT": "正在下載兼容字型...",

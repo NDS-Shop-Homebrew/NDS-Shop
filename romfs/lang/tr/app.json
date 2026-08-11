@@ -56,6 +56,7 @@
 	"DONE": "Tamamdır!",
 	"DOWNLOAD_ERROR": "İndirme Hatası!",
 	"DOWNLOAD_FAILED": "İndirme Başarısız!",
+	"DOWNLOAD_FAILED_BATTERY": "Düşük pil: indirme kesildi!",
 	"DOWNLOAD_SPEED": "Hız: %lld KiB/s",
 	"DOWNLOADING": "İndiriliyor... %s / %s (%.2f%%)",
 	"DOWNLOADING_COMPATIBLE_FONT": "Uyumlu yazı tipi indiriliyor...",

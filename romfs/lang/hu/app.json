@@ -56,6 +56,7 @@
 	"DONE": "Kész!",
 	"DOWNLOAD_ERROR": "Letöltési hiba!",
 	"DOWNLOAD_FAILED": "Letöltés sikertelen!",
+	"DOWNLOAD_FAILED_BATTERY": "Alacsony akkumulátor: letöltés megszakítva!",
 	"DOWNLOAD_SPEED": "Sebesség: %lld KiB/s",
 	"DOWNLOADING": "Letöltés... %s / %s (%.2f%%)",
 	"DOWNLOADING_COMPATIBLE_FONT": "Kompatibilis karakterkészlet letöltése...",

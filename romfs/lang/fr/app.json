@@ -56,6 +56,7 @@
 	"DONE": "Terminé !",
 	"DOWNLOAD_ERROR": "Erreur de téléchargement !",
 	"DOWNLOAD_FAILED": "Échec du téléchargement !",
+	"DOWNLOAD_FAILED_BATTERY": "Batterie faible : téléchargement interrompu !",
 	"DOWNLOAD_SPEED": "Vitesse : %lld Kio/s",
 	"DOWNLOADING": "Téléchargement… %s / %s (%.2f%%)",
 	"DOWNLOADING_COMPATIBLE_FONT": "Téléchargement d'une police compatible…",

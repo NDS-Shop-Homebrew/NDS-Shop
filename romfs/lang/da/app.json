@@ -56,6 +56,7 @@
 	"DONE": "Færdig!",
 	"DOWNLOAD_ERROR": "Nedhentings Fejl!",
 	"DOWNLOAD_FAILED": "Nedhentning mislykkedes!",
+	"DOWNLOAD_FAILED_BATTERY": "Lavt batteri: download afbrudt!",
 	"DOWNLOAD_SPEED": "Hastighed: %lld KiB/s",
 	"DOWNLOADING": "Kopierer... %s / %s (%.2f%%)",
 	"DOWNLOADING_COMPATIBLE_FONT": "Download kompatibel modem",

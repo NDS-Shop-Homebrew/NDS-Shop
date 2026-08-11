@@ -56,6 +56,7 @@
 	"DONE": "Terminat!",
 	"DOWNLOAD_ERROR": "Eroare de Descărcare!",
 	"DOWNLOAD_FAILED": "Descărcare Eşuată!",
+	"DOWNLOAD_FAILED_BATTERY": "Baterie scăzută: descărcare întreruptă!",
 	"DOWNLOAD_SPEED": "Viteză: %lld KiB/s",
 	"DOWNLOADING": "Se descarcă... %s / %s (%.2f%%)",
 	"DOWNLOADING_COMPATIBLE_FONT": "Se descarcă font compatibil...",

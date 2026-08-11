@@ -56,6 +56,7 @@
 	"DONE": "Готово!",
 	"DOWNLOAD_ERROR": "Ошибка загрузки!",
 	"DOWNLOAD_FAILED": "Ошибка с загрузкой!",
+	"DOWNLOAD_FAILED_BATTERY": "Низкий заряд батареи: загрузка прервана!",
 	"DOWNLOAD_SPEED": "Скорость: %lld КиБ/с",
 	"DOWNLOADING": "Скачивание... %s / %s (%.2f%%)",
 	"DOWNLOADING_COMPATIBLE_FONT": "Загрузка совместимого шрифта...",
