@@ -86,10 +86,14 @@ public:
 		if (this->metadataJson[unistoreName][entry]["installed"].empty() && this->metadataJson[unistoreName][entry].contains("updated")) this->metadataJson[unistoreName][entry].erase("updated");
 	}
 
+	/* Block saving so a restore is not overwritten on exit. */
+	void blockSave(bool v) { this->v_blockSave = v; };
+
 	void ImportMetadata();
 	void SaveCall();
 private:
 	nlohmann::json metadataJson = nullptr;
+	bool v_blockSave = false;
 };
 
 #endif
