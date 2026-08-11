@@ -20,6 +20,7 @@
 */
 
 #include "common.hpp"
+#include "backup.hpp"
 #include "init.hpp"
 #include "overlay.hpp"
 #include "scriptUtils.hpp"
@@ -30,12 +31,13 @@ extern bool exiting, QueueRuns;
 extern bool touching(touchPosition touch, Structs::ButtonPos button);
 static const std::vector<Structs::ButtonPos> mainButtons = {
 	{ 45, 32, 271, 22 },
-	{ 45, 62, 271, 22 },
-	{ 45, 92, 271, 22 },
-	{ 45, 122, 271, 22 },
-	{ 45, 152, 271, 22 },
-	{ 45, 182, 271, 22 },
-	{ 45, 212, 271, 22 }
+	{ 45, 58, 271, 22 },
+	{ 45, 84, 271, 22 },
+	{ 45, 110, 271, 22 },
+	{ 45, 136, 271, 22 },
+	{ 45, 162, 271, 22 },
+	{ 45, 188, 271, 22 },
+	{ 45, 214, 271, 22 }
 };
 
 static const std::vector<Structs::ButtonPos> langButtons = {
@@ -76,8 +78,14 @@ static const Structs::ButtonPos back = { 45, 0, 24, 24 }; // Back arrow for dire
 static const Structs::ButtonPos Theme = { 40, 196, 280, 24 }; // Themes.
 
 
-static const std::vector<std::string> mainStrings = { "LANGUAGE", "SELECT_UNISTORE", "AUTO_UPDATE_SETTINGS_BTN", "GUI_SETTINGS_BTN", "DIRECTORY_SETTINGS_BTN", "CREDITS_BTN", "EXIT_APP" };
+static const std::vector<std::string> mainStrings = { "LANGUAGE", "SELECT_UNISTORE", "AUTO_UPDATE_SETTINGS_BTN", "GUI_SETTINGS_BTN", "DIRECTORY_SETTINGS_BTN", "CREDITS_BTN", "BACKUP_SETTINGS_BTN", "EXIT_APP" };
 static const std::vector<std::string> dirStrings = { "CHANGE_3DSX_PATH", "3DSX_IN_FOLDER", "CHANGE_NDS_PATH", "CHANGE_ARCHIVE_PATH", "CHANGE_SHORTCUT_PATH", "CHANGE_FIRM_PATH" };
+static const std::vector<Structs::ButtonPos> backupButtons = {
+	{ 45, 44, 271, 22 },
+	{ 45, 104, 271, 22 },
+	{ 45, 134, 271, 22 }
+};
+static const Structs::ButtonPos backupToggle = { 288, 44, 24, 24 };
 extern std::vector<std::pair<std::string, std::string>> Themes;
 
 /* Note: Украïнська is spelled using a latin i with dieresis to work in the system font */
@@ -95,7 +103,7 @@ static void DrawSettingsMain(int selection) {
 	Gui::Draw_Rect(40, 25, 280, 1, UIThemes->EntryOutline());
 	Gui::DrawStringCentered(20, 2, 0.6, UIThemes->TextColor(), Lang::get("SETTINGS"), 280, 0, font);
 
-	for (int i = 0; i < 7; i++) {
+	for (int i = 0; i < (int)mainButtons.size(); i++) {
 		if (i == selection) Gui::Draw_Rect(mainButtons[i].x, mainButtons[i].y, mainButtons[i].w, mainButtons[i].h, UIThemes->MarkSelected());
 		Gui::DrawStringCentered(20, mainButtons[i].y + 4, 0.45f, UIThemes->TextColor(), Lang::get(mainStrings[i]), 255, 0, font);
 	}
@@ -169,6 +177,32 @@ static void DrawAutoUpdate(int selection) {
 }
 
 /*
+	Draw Backup Settings page.
+*/
+static void DrawBackupSettings(int selection) {
+	Gui::Draw_Rect(40, 0, 280, 25, UIThemes->EntryBar());
+	Gui::Draw_Rect(40, 25, 280, 1, UIThemes->EntryOutline());
+	GFX::DrawIcon(sprites_arrow_idx, back.x, back.y, UIThemes->TextColor());
+
+	Gui::DrawStringCentered(20, 2, 0.6, UIThemes->TextColor(), Lang::get("BACKUP_SETTINGS"), 240, 0, font);
+
+	/* Backup on startup toggle. */
+	Gui::Draw_Rect(40, 44, 280, 24, (selection == 0 ? UIThemes->MarkSelected() : UIThemes->MarkUnselected()));
+	Gui::DrawString(47, 48, 0.5f, UIThemes->TextColor(), Lang::get("BACKUP_SETTINGS_STARTUP"), 210, 0, font);
+	GFX::DrawToggle(backupToggle.x, backupToggle.y, config->backup());
+	Gui::DrawString(47, 75, 0.4f, UIThemes->TextColor(), Lang::get("BACKUP_SETTINGS_STARTUP_DESC"), 265, 0, font, C2D_WordWrap);
+
+	/* Back up now button. */
+	Gui::Draw_Rect(40, 104, 280, 24, (selection == 1 ? UIThemes->MarkSelected() : UIThemes->MarkUnselected()));
+	Gui::DrawString(47, 108, 0.5f, UIThemes->TextColor(), Lang::get("BACKUP_SETTINGS_NOW"), 210, 0, font);
+
+	/* Restore button. */
+	Gui::Draw_Rect(40, 134, 280, 24, (selection == 2 ? UIThemes->MarkSelected() : UIThemes->MarkUnselected()));
+	Gui::DrawString(47, 138, 0.5f, UIThemes->TextColor(), Lang::get("RESTORE_SETTINGS_BTN"), 210, 0, font);
+	Gui::DrawString(47, 165, 0.4f, UIThemes->TextColor(), Lang::get("RESTORE_SETTINGS_BTN_DESC"), 265, 0, font, C2D_WordWrap);
+}
+
+/*
 	Draw the GUI Settings.
 
 	int selection: The Settings Selection.
@@ -219,7 +253,7 @@ static void SettingsHandleMain(int &page, bool &dspSettings, int &storeMode, int
 	}
 
 	if (hRepeat & KEY_DOWN) {
-		if (selection < 6) selection++;
+		if (selection < (int)mainStrings.size() - 1) selection++;
 		else selection = 0;
 	}
 
@@ -267,6 +301,10 @@ static void SettingsHandleMain(int &page, bool &dspSettings, int &storeMode, int
 			Overlays::ShowCredits();
 
 		} else if (touching(touch, mainButtons[6])) {
+			selection = 0;
+			page = 5;
+
+		} else if (touching(touch, mainButtons[7])) {
 			if (!QueueRuns) exiting = true;
 		}
 	}
@@ -307,6 +345,11 @@ static void SettingsHandleMain(int &page, bool &dspSettings, int &storeMode, int
 				break;
 
 			case 6:
+				selection = 0;
+				page = 5;
+				break;
+
+			case 7:
 				if (!QueueRuns) exiting = true;
 				break;
 		}
@@ -465,6 +508,83 @@ static void AutoUpdateLogic(int &page, int &selection) {
 
 			case 1:
 				config->updatecheck(!config->updatecheck());
+				break;
+		}
+	}
+}
+
+/*
+	Logic of the Backup Settings.
+
+	Here you can..
+
+	- Enable / Disable the automatic backup on startup.
+	- Backup the settings manually.
+	- Restore the settings from the backup.
+
+	int &page: Reference to the page.
+	int &selection: Reference to the Selection.
+*/
+static void BackupLogic(int &page, int &selection) {
+	if (hDown & KEY_B) {
+		page = 0;
+		selection = 6;
+	}
+
+	if (hRepeat & KEY_DOWN) {
+		if (selection < 2) selection++;
+	}
+
+	if (hRepeat & KEY_UP) {
+		if (selection > 0) selection--;
+	}
+
+	if (hDown & KEY_TOUCH) {
+		if (touching(touch, back)) {
+			page = 0;
+			selection = 6;
+
+		} else if (touching(touch, backupToggle)) {
+			config->backup(!config->backup());
+
+		} else if (touching(touch, backupButtons[1])) {
+			BackupSettings(true);
+			Msg::waitMsg(Lang::get("BACKUP_SETTINGS_DONE"));
+
+		} else if (touching(touch, backupButtons[2])) {
+			if (Msg::promptMsg(Lang::get("RESTORE_SETTINGS_CONFIRM"))) {
+				if (RestoreSettings()) {
+					Msg::waitMsg(Lang::get("RESTORE_DONE_RESTART"));
+					exiting = true;
+
+				} else {
+					Msg::waitMsg(Lang::get("RESTORE_FAILED"));
+				}
+			}
+		}
+	}
+
+	if (hDown & KEY_A) {
+		switch(selection) {
+			case 0:
+				config->backup(!config->backup());
+				break;
+
+			case 1:
+				BackupSettings(true);
+				Msg::waitMsg(Lang::get("BACKUP_SETTINGS_DONE"));
+				break;
+
+			case 2:
+				if (Msg::promptMsg(Lang::get("RESTORE_SETTINGS_CONFIRM"))) {
+					if (RestoreSettings()) {
+						Msg::waitMsg(Lang::get("RESTORE_DONE_RESTART"));
+						exiting = true;
+
+					} else {
+						Msg::waitMsg(Lang::get("RESTORE_FAILED"));
+					}
+				}
 				break;
 		}
 	}
@@ -678,6 +798,10 @@ void StoreUtils::DrawSettings(int page, int selection, int sPos) {
 		case 4:
 			DrawLanguageSettings(selection, sPos);
 			break;
+
+		case 5:
+			DrawBackupSettings(selection);
+			break;
 	}
 }
 
@@ -710,6 +834,10 @@ void StoreUtils::SettingsHandle(int &page, bool &dspSettings, int &storeMode, in
 
 		case 4:
 			LanguageLogic(page, selection, sPos);
+			break;
+
+		case 5:
+			BackupLogic(page, selection);
 			break;
 	}
 }

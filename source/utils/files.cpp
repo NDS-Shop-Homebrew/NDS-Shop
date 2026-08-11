@@ -134,3 +134,37 @@ u64 getAvailableSpace() {
 	statvfs("sdmc:/", &st);
 	return (u64)st.f_bsize * (u64)st.f_bavail;
 }
+
+bool copyFile(const std::string &source, const std::string &destination) {
+	if (access(source.c_str(), F_OK) != 0) return false;
+
+	FILE *src = fopen(source.c_str(), "rb");
+	if (!src) return false;
+
+	FILE *dst = fopen(destination.c_str(), "wb");
+	if (!dst) {
+		fclose(src);
+		return false;
+	}
+
+	char buffer[0x4000];
+	size_t read = 0;
+	bool success = true;
+	while ((read = fread(buffer, 1, sizeof(buffer), src)) > 0) {
+		if (fwrite(buffer, 1, read, dst) != read) {
+			success = false;
+			break;
+		}
+	}
+
+	fclose(src);
+	fclose(dst);
+	return success;
+}
+
+bool restoreBackup(const std::string &path) {
+	const std::string backup = path + ".bak";
+	if (access(backup.c_str(), F_OK) != 0) return false;
+
+	return copyFile(backup, path);
+}
