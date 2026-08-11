@@ -56,6 +56,7 @@
 	"DONE": "完了！",
 	"DOWNLOAD_ERROR": "ダウンロードエラー！",
 	"DOWNLOAD_FAILED": "ダウンロードに失敗しました！",
+	"DOWNLOAD_FAILED_BATTERY": "バッテリー残量が少ないため、ダウンロードを中断しました！",
 	"DOWNLOAD_SPEED": "速度: %lld KiB/秒",
 	"DOWNLOADING": "ダウンロード中… %s / %s (%.2f%%)",
 	"DOWNLOADING_COMPATIBLE_FONT": "互換性のあるフォントをダウンロードしています……",

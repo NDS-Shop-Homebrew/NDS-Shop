@@ -56,6 +56,7 @@
 	"DONE": "Done!",
 	"DOWNLOAD_ERROR": "Download Error!",
 	"DOWNLOAD_FAILED": "Download Failed!",
+	"DOWNLOAD_FAILED_BATTERY": "Battery low: download interrupted!",
 	"DOWNLOAD_SPEED": "Speed: %lld KiB/s",
 	"DOWNLOADING": "Downloading... %s / %s (%.2f%%)",
 	"DOWNLOADING_COMPATIBLE_FONT": "Downloading compatible font...",

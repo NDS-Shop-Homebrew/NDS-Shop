@@ -56,6 +56,7 @@
 	"DONE": "Klaar!",
 	"DOWNLOAD_ERROR": "Download Fout!",
 	"DOWNLOAD_FAILED": "Download mislukt!",
+	"DOWNLOAD_FAILED_BATTERY": "Lage batterij: download onderbroken!",
 	"DOWNLOAD_SPEED": "Downloadsnelheid: %lld KiB/s",
 	"DOWNLOADING": "Downloaden... %s / %s (%.2f%%)",
 	"DOWNLOADING_COMPATIBLE_FONT": "Compatibel lettertype downloaden...",

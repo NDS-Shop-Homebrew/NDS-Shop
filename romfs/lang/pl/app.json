@@ -56,6 +56,7 @@
 	"DONE": "Gotowe!",
 	"DOWNLOAD_ERROR": "Błąd pobierania!",
 	"DOWNLOAD_FAILED": "Pobieranie nieudane!",
+	"DOWNLOAD_FAILED_BATTERY": "Niski poziom baterii: pobieranie przerwane!",
 	"DOWNLOAD_SPEED": "Prędkość: %lld KiB/s",
 	"DOWNLOADING": "Pobieranie... %s / %s (%.2f%%)",
 	"DOWNLOADING_COMPATIBLE_FONT": "Pobieranie kompatybilnej czcionki...",

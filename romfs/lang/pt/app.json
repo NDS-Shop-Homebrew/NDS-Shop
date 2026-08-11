@@ -56,6 +56,7 @@
 	"DONE": "Feito!",
 	"DOWNLOAD_ERROR": "Erro ao transferir!",
 	"DOWNLOAD_FAILED": "Download Falhou!",
+	"DOWNLOAD_FAILED_BATTERY": "Bateria fraca: download interrompido!",
 	"DOWNLOAD_SPEED": "Velocidade: %lld KiB/s",
 	"DOWNLOADING": "A descarregar... %s / %s (%.2f%%)",
 	"DOWNLOADING_COMPATIBLE_FONT": "A descarregar fonte compatível...",

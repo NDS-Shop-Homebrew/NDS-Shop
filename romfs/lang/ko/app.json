@@ -56,6 +56,7 @@
 	"DONE": "완료!",
 	"DOWNLOAD_ERROR": "다운로드 오류!",
 	"DOWNLOAD_FAILED": "다운로드 실패!",
+	"DOWNLOAD_FAILED_BATTERY": "배터리 부족: 다운로드 중단됨!",
 	"DOWNLOAD_SPEED": "속도: %lld KiB/s",
 	"DOWNLOADING": "다운로드 중... %s / %s (%.2f%%)",
 	"DOWNLOADING_COMPATIBLE_FONT": "호환되는 폰트 다운로드 중...",
