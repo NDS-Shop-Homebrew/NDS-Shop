@@ -68,7 +68,6 @@ static LightEvent waitCommit;
 static bool killThread = false;
 static bool writeError = false;
 static bool g_batteryCritical = false;
-static curl_off_t g_resumeOffset = 0; // How many bytes were already downloaded to the ".part" file.
 #define FILE_ALLOC_SIZE 0x60000
 CURL *CurlHandle = nullptr;
 
@@ -117,10 +116,10 @@ static void commitToFileThreadFunc(void *args) {
 
 static size_t file_handle_data(char *ptr, size_t size, size_t nmemb, void *userdata) {
 	if (battery_is_critical()) {
-		g_batteryCritical = true; // Stop downloading, keep the partial file for a later resume.
+		g_batteryCritical = true; // Stop downloading.
 		return 0;
 	}
-	if (downloadTotal > g_resumeOffset && getAvailableSpace() < (u64)(downloadTotal - g_resumeOffset)) return 0; // Out of space.
+	if (getAvailableSpace() < (u64)downloadTotal) return 0; // Out of space.
 	if (writeError) return 0;
 	if (QueueSystem::CancelCallback) return 0;
 
@@ -174,18 +173,15 @@ Result downloadToFile(const std::string &url, const std::string &path) {
 	downloadTotal = 1;
 	downloadNow = 0;
 	downloadSpeed = 0;
-	g_resumeOffset = 0;
 	g_batteryCritical = false;
 
 	CURLcode curlResult;
 	Result retcode = 0;
 	int res;
 
-	/* We always download to a ".part" file and rename it at the very end,
-	 * so interrupted downloads can be resumed later with a Range request. */
-	std::string partPath = path + ".part";
-	long resumeFrom = 0;
-	FILE *partCheck = nullptr;
+	/* ponytail: telechargement direct dans le fichier final (comme Universal-Updater).
+	 * L'ancien mecanisme ".part" + rename() echouait sur 3DS, et le resume par
+	 * Range sur un ".part" deja complet declenchait une reponse 416 -> echec. */
 
 	printf("Downloading from:\n%s\nto:\n%s\n", url.c_str(), path.c_str());
 
@@ -214,20 +210,7 @@ Result downloadToFile(const std::string &url, const std::string &path) {
 		*(slashpos) = bak;
 	}
 
-	/* Check, if a partial download already exists, so we can resume it. */
-	partCheck = fopen(partPath.c_str(), "rb");
-	if (partCheck) {
-		fseek(partCheck, 0, SEEK_END);
-		resumeFrom = (long)ftell(partCheck);
-		fclose(partCheck);
-	}
-
-	if (resumeFrom > 0) {
-		g_resumeOffset = resumeFrom;
-		printf("Resuming %s from byte %ld\n", partPath.c_str(), resumeFrom);
-	}
-
-	downfile = fopen(partPath.c_str(), "ab");
+	downfile = fopen(path.c_str(), "wb");
 	if (!downfile) {
 		retcode = -2;
 		goto exit;
@@ -241,14 +224,11 @@ Result downloadToFile(const std::string &url, const std::string &path) {
 	curl_easy_setopt(CurlHandle, CURLOPT_FOLLOWLOCATION, 1L);
 	curl_easy_setopt(CurlHandle, CURLOPT_FAILONERROR, 1L);
 	curl_easy_setopt(CurlHandle, CURLOPT_MAXREDIRS, 50L);
-	/* Detect a stalled connection, so we can abort and resume/retry.
+	/* Detect a stalled connection, so we can abort and retry.
 	 * (Without these, curl would just hang forever on a dead Wi-Fi.) */
 	curl_easy_setopt(CurlHandle, CURLOPT_CONNECTTIMEOUT, 15L);
 	curl_easy_setopt(CurlHandle, CURLOPT_LOW_SPEED_LIMIT, 1L);
 	curl_easy_setopt(CurlHandle, CURLOPT_LOW_SPEED_TIME, 20L);
-	/* NOTE: No "Accept-Encoding: gzip" here on purpose: range requests
-	 * (resume support) are only reliable without content encoding. */
-	if (resumeFrom > 0) curl_easy_setopt(CurlHandle, CURLOPT_RESUME_FROM_LARGE, (curl_off_t)resumeFrom);
 	curl_easy_setopt(CurlHandle, CURLOPT_XFERINFOFUNCTION, curlProgress);
 	curl_easy_setopt(CurlHandle, CURLOPT_HTTP_VERSION, (long)CURL_HTTP_VERSION_2TLS);
 	curl_easy_setopt(CurlHandle, CURLOPT_WRITEFUNCTION, file_handle_data);
@@ -262,14 +242,12 @@ Result downloadToFile(const std::string &url, const std::string &path) {
 
 	if (curlResult != CURLE_OK) {
 		if (g_batteryCritical) {
-			/* Battery ran critically low during the download: stop, keep the ".part". */
+			/* Battery ran critically low during the download: stop. */
 			retcode = DL_ERROR_BATTERY;
 			goto exit;
 		}
-		/* The server does not support range requests: purge the partial,
-		 * so the next attempt restarts from scratch. */
-		if (curlResult == CURLE_RANGE_ERROR) needToDelete = true;
 		retcode = -curlResult;
+		needToDelete = true;
 		goto exit;
 	}
 
@@ -282,19 +260,11 @@ Result downloadToFile(const std::string &url, const std::string &path) {
 
 	if (!filecommit()) {
 		retcode = -3;
+		needToDelete = true;
 		goto exit;
 	}
 
 	fflush(downfile);
-	fclose(downfile);
-	downfile = nullptr;
-
-	/* Download finished: move the ".part" file to its final destination. */
-	if (rename(partPath.c_str(), path.c_str()) != 0) {
-		printf("Failed to rename %s\n", partPath.c_str());
-		retcode = -3;
-		goto exit;
-	}
 
 	printf("Download finished: %s\n", path.c_str());
 
@@ -330,10 +300,9 @@ exit:
 	file_buffer_pos = 0;
 	file_toCommit_size = 0;
 	writeError = false;
-	g_resumeOffset = 0;
 
 	if (needToDelete) {
-		if (access(partPath.c_str(), F_OK) == 0) deleteFile(partPath.c_str()); // Delete the partial, cause the server doesn't support ranges.
+		if (access(path.c_str(), F_OK) == 0) deleteFile(path.c_str()); // Delete file, cause not fully downloaded.
 	}
 
 	if (QueueSystem::CancelCallback) return 0;
