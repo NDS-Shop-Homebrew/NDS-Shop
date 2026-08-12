@@ -35,6 +35,7 @@
 #include <dirent.h>
 #include <malloc.h>
 #include <algorithm>
+#include <cstdarg>
 #include <cstdlib>
 #include <regex>
 #include <sstream>
@@ -43,6 +44,19 @@
 #include <vector>
 
 #define USER_AGENT APP_TITLE "-" VER_NUMBER
+
+/* Write a line to sdmc:/nds-dl.log for remote debugging. */
+static void dbgLog(const char *fmt, ...) {
+	FILE *f = fopen("sdmc:/nds-dl.log", "a");
+	if (!f) return;
+	fprintf(f, "[DBG] ");
+	va_list args;
+	va_start(args, fmt);
+	vfprintf(f, fmt, args);
+	va_end(args);
+	fprintf(f, "\n");
+	fclose(f);
+}
 
 static char *result_buf = nullptr;
 static size_t result_sz = 0;
@@ -167,7 +181,7 @@ static size_t file_handle_data(char *ptr, size_t size, size_t nmemb, void *userd
 	const std::string &path: Where to place the file.
 */
 Result downloadToFile(const std::string &url, const std::string &path) {
-	if (!checkWifiStatus()) { printf("[DBG] checkWifiStatus=false\n"); return -1; }
+	if (!checkWifiStatus()) { dbgLog("checkWifiStatus=false"); return -1; }
 
 	bool needToDelete = false;
 	downloadTotal = 1;
@@ -186,18 +200,18 @@ Result downloadToFile(const std::string &url, const std::string &path) {
 	printf("Downloading from:\n%s\nto:\n%s\n", url.c_str(), path.c_str());
 
 	/* We refuse to start a download while the battery is critically low. */
-	if (battery_is_critical()) { printf("[DBG] battery critical\n"); return DL_ERROR_BATTERY; }
+	if (battery_is_critical()) { dbgLog("battery critical"); return DL_ERROR_BATTERY; }
 
 	void *socubuf = memalign(0x1000, 0x100000);
 	if (!socubuf) {
-		printf("[DBG] socubuf alloc fail\n");
+		dbgLog("socubuf alloc fail");
 		retcode = -1;
 		goto exit;
 	}
 
 	res = socInit((u32 *)socubuf, 0x100000);
 	if (R_FAILED(res)) {
-		printf("[DBG] socInit fail: %08lX\n", res);
+		dbgLog("socInit fail: %08X", (unsigned int)res);
 		retcode = res;
 		goto exit;
 	}
@@ -214,7 +228,7 @@ Result downloadToFile(const std::string &url, const std::string &path) {
 
 	downfile = fopen(path.c_str(), "wb");
 	if (!downfile) {
-		printf("[DBG] fopen fail: %s\n", path.c_str());
+		dbgLog("fopen fail: %s", path.c_str());
 		retcode = -2;
 		goto exit;
 	}
@@ -239,19 +253,19 @@ Result downloadToFile(const std::string &url, const std::string &path) {
 	curl_easy_setopt(CurlHandle, CURLOPT_VERBOSE, 1L);
 	curl_easy_setopt(CurlHandle, CURLOPT_STDERR, stdout);
 
-	printf("[DBG] performing curl_easy_perform...\n");
+	dbgLog("performing curl_easy_perform...");
 	curlResult = curl_easy_perform(CurlHandle);
 	curl_easy_cleanup(CurlHandle);
 	CurlHandle = nullptr;
-	printf("[DBG] curl done: %d\n", curlResult);
+	dbgLog("curl done: %d", (int)curlResult);
 
 	if (curlResult != CURLE_OK) {
 		if (g_batteryCritical) {
-			printf("[DBG] battery critical during download\n");
+			dbgLog("battery critical during download");
 			retcode = DL_ERROR_BATTERY;
 			goto exit;
 		}
-		printf("[DBG] curl error: %d\n", curlResult);
+		dbgLog("curl error: %d", (int)curlResult);
 		retcode = -curlResult;
 		needToDelete = true;
 		goto exit;
@@ -265,7 +279,7 @@ Result downloadToFile(const std::string &url, const std::string &path) {
 	g_index = !g_index;
 
 	if (!filecommit()) {
-		printf("[DBG] final filecommit failed\n");
+		dbgLog("final filecommit failed");
 		retcode = -3;
 		needToDelete = true;
 		goto exit;
@@ -273,7 +287,7 @@ Result downloadToFile(const std::string &url, const std::string &path) {
 
 	fflush(downfile);
 
-	printf("[DBG] downloadToFile SUCCESS\n");
+	dbgLog("downloadToFile SUCCESS");
 
 	printf("Download finished: %s\n", path.c_str());
 
@@ -473,12 +487,12 @@ Result downloadFromRelease(const std::string &url, const std::string &asset, con
 	result_written = 0;
 
 	if (assetUrl.empty() || ret != 0) {
-		printf("[DBG] asset not found or error, ret=%d\n", ret);
+		dbgLog("asset not found or error, ret=%ld", (long)ret);
 		ret = DL_ERROR_GIT;
 	} else {
-		printf("[DBG] asset URL found: %s\n", assetUrl.c_str());
+		dbgLog("asset URL found: %s", assetUrl.c_str());
 		ret = downloadToFile(assetUrl, path);
-		printf("[DBG] downloadToFile returned: %d\n", ret);
+		dbgLog("downloadToFile returned: %ld", (long)ret);
 	}
 
 	return ret;
