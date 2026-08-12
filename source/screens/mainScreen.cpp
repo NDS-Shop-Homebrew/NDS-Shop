@@ -150,7 +150,7 @@ void MainScreen::Draw(void) const {
 
 			case 3:
 				/* Search + Favorites. */
-				StoreUtils::DrawSearchMenu(this->searchIncludes, this->searchResult, this->marks, this->updateFilter, this->isAND);
+				StoreUtils::DrawSearchMenu(this->searchIncludes, this->searchResult, this->marks, this->updateFilter, this->installedFilter, this->isAND);
 				break;
 
 			case 4:
@@ -284,7 +284,7 @@ void MainScreen::Logic(u32 hDown, u32 hHeld, touchPosition touch) {
 				break;
 
 			case 3:
-				StoreUtils::SearchHandle(this->searchIncludes, this->searchResult, this->marks, this->updateFilter, this->ascending, this->sorttype, this->isAND);
+				StoreUtils::SearchHandle(this->searchIncludes, this->searchResult, this->marks, this->updateFilter, this->installedFilter, this->ascending, this->sorttype, this->isAND);
 				break;
 
 			case 4:

@@ -21,6 +21,7 @@
 
 #include "common.hpp"
 #include "config.hpp"
+#include "files.hpp"
 #include "json.hpp"
 #include <string>
 #include <unistd.h>
@@ -91,7 +92,7 @@ void Config::sysLang() {
 	In case it doesn't exist.
 */
 void Config::initialize() {
-	FILE *temp = fopen("sdmc:/3ds/Universal-Updater/NDS-Shop/config/Config.json", "w");
+	FILE *temp = fopen(_CONFIG_PATH, "w");
 	char tmp[2] = { '{', '}' };
 	fwrite(tmp, sizeof(tmp), 1, temp);
 	fclose(temp);
@@ -101,14 +102,24 @@ void Config::initialize() {
 	Constructor of the config.
 */
 Config::Config() {
-	if (access("sdmc:/3ds/Universal-Updater/NDS-Shop/config/Config.json", F_OK) != 0) {
-		this->initialize();
+	/* If missing but a backup exists, restore it instead of creating a new one. */
+	if (access(_CONFIG_PATH, F_OK) != 0) {
+		if (!restoreBackup(_CONFIG_PATH)) this->initialize();
 	}
 
-	FILE *file = fopen("sdmc:/3ds/Universal-Updater/NDS-Shop/config/Config.json", "rt");
+	FILE *file = fopen(_CONFIG_PATH, "rt");
 	if (file) {
 		this->json = nlohmann::json::parse(file, nullptr, false);
 		fclose(file);
+	}
+
+	/* If the config is corrupted, try to restore the backup. */
+	if (this->json.is_discarded() && restoreBackup(_CONFIG_PATH)) {
+		FILE *file2 = fopen(_CONFIG_PATH, "rt");
+		if (file2) {
+			this->json = nlohmann::json::parse(file2, nullptr, false);
+			fclose(file2);
+		}
 	}
 	if (this->json.is_discarded())
 		this->json = { };
@@ -146,14 +157,15 @@ Config::Config() {
 	}
 
 	if (this->json.contains("Prompt")) this->prompt(this->getBool("Prompt"));
+	if (this->json.contains("Backup")) this->backup(this->getBool("Backup"));
 
 	this->changesMade = false; // No changes made yet.
 }
 
 /* Write to config if changesMade. */
 void Config::save() {
-	if (this->changesMade) {
-		FILE *file = fopen("sdmc:/3ds/Universal-Updater/NDS-Shop/config/Config.json", "w");
+	if (this->changesMade && !this->v_blockSave) {
+		FILE *file = fopen(_CONFIG_PATH, "w");
 
 		/* Set values. */
 		this->setString("Language", this->language());
@@ -174,6 +186,7 @@ void Config::save() {
 		this->setBool("Display_Changelog", this->changelog());
 		this->setString("Active_Theme", this->theme());
 		this->setBool("Prompt", this->prompt());
+		this->setBool("Backup", this->backup());
 
 		/* Write changes to file. */
 		const std::string dump = this->json.dump(1, '\t');

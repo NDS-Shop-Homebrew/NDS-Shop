@@ -20,6 +20,7 @@
 */
 
 #include "common.hpp"
+#include "backup.hpp"
 #include "download.hpp"
 #include "init.hpp"
 #include "mainScreen.hpp"
@@ -168,6 +169,9 @@ Result Init::Initialize() {
 
 	Gui::setScreen(std::make_unique<MainScreen>(), false, false);
 	InitMusic();
+
+	/* Backup the settings for this session, if enabled. */
+	if (config->backup()) BackupSettings();
 
 	return 0;
 }

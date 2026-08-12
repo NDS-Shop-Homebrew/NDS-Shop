@@ -37,14 +37,18 @@ static const std::vector<Structs::ButtonPos> SearchMenu = {
 
 	/* Filters. */
 	{ 82, 159, 30, 30 },
-	{ 117, 159, 30, 30 },
-	{ 152, 159, 30, 30 },
-	{ 187, 159, 30, 30 },
-	{ 222, 159, 30, 30 },
-	{ 257, 159, 30, 30 },
+	{ 115, 159, 30, 30 },
+	{ 148, 159, 30, 30 },
+	{ 181, 159, 30, 30 },
+	{ 214, 159, 30, 30 },
+	{ 247, 159, 30, 30 },
+	{ 280, 159, 30, 30 },
 
-	/* Send to Queue. */
-	{ 82, 200, 205, 25 },
+	/* Add Selection to Queue. */
+	{ 82, 196, 205, 20 },
+
+	/* Update All. */
+	{ 82, 218, 205, 20 },
 
 	/* AND / OR. */
 	{ 222, 139, 30, 13 },
@@ -58,9 +62,10 @@ static const std::vector<Structs::ButtonPos> SearchMenu = {
 	const std::string &searchResult: Const Reference to the searchResult.
 	int marks: The filter mark flags.
 	bool updateFilter: The update filter.
+	bool installedFilter: The installed filter.
 	isAND: isAND for the AND / OR mode.
 */
-void StoreUtils::DrawSearchMenu(const std::vector<bool> &searchIncludes, const std::string &searchResult, int marks, bool updateFilter, bool isAND) {
+void StoreUtils::DrawSearchMenu(const std::vector<bool> &searchIncludes, const std::string &searchResult, int marks, bool updateFilter, bool installedFilter, bool isAND) {
 	Gui::Draw_Rect(40, 0, 280, 25, UIThemes->EntryBar());
 	Gui::Draw_Rect(40, 25, 280, 1, UIThemes->EntryOutline());
 	Gui::DrawStringCentered(21, 2, 0.6, UIThemes->TextColor(), Lang::get("SEARCH_FILTERS"), 269, 0, font);
@@ -104,22 +109,29 @@ void StoreUtils::DrawSearchMenu(const std::vector<bool> &searchIncludes, const s
 	Gui::Draw_Rect(SearchMenu[10].x, SearchMenu[10].y, SearchMenu[10].w, SearchMenu[10].h, (updateFilter ?
 		UIThemes->SideBarUnselected() : UIThemes->BoxInside()));
 
+	Gui::Draw_Rect(SearchMenu[11].x, SearchMenu[11].y, SearchMenu[11].w, SearchMenu[11].h, (installedFilter ?
+		UIThemes->SideBarUnselected() : UIThemes->BoxInside()));
+
 	Gui::DrawString(SearchMenu[5].x + 9, SearchMenu[5].y + 7, 0.5f, UIThemes->TextColor(), "★", 0, 0, font);
 	Gui::DrawString(SearchMenu[6].x + 9, SearchMenu[6].y + 7, 0.5f, UIThemes->TextColor(), "♥", 0, 0, font);
 	Gui::DrawString(SearchMenu[7].x + 9, SearchMenu[7].y + 7, 0.5f, UIThemes->TextColor(), "♦", 0, 0, font);
 	Gui::DrawString(SearchMenu[8].x + 9, SearchMenu[8].y + 7, 0.5f, UIThemes->TextColor(), "♣", 0, 0, font);
 	Gui::DrawString(SearchMenu[9].x + 9, SearchMenu[9].y + 7, 0.5f, UIThemes->TextColor(), "♠", 0, 0, font);
 	GFX::DrawIcon(sprites_update_filter_idx, SearchMenu[10].x + 8, SearchMenu[10].y + 8, UIThemes->TextColor());
+	GFX::DrawIcon(sprites_installed_idx, SearchMenu[11].x + 8, SearchMenu[11].y + 8, UIThemes->TextColor());
 
-	Gui::Draw_Rect(SearchMenu[11].x, SearchMenu[11].y, SearchMenu[11].w, SearchMenu[11].h, UIThemes->MarkUnselected());
-	Gui::DrawStringCentered(23, SearchMenu[11].y + 6, 0.45f, UIThemes->TextColor(), Lang::get("SELECTION_QUEUE"), 200, 0, font);
+	Gui::Draw_Rect(SearchMenu[12].x, SearchMenu[12].y, SearchMenu[12].w, SearchMenu[12].h, UIThemes->MarkUnselected());
+	Gui::DrawStringCentered(23, SearchMenu[12].y + 5, 0.45f, UIThemes->TextColor(), Lang::get("SELECTION_QUEUE"), 200, 0, font);
+
+	Gui::Draw_Rect(SearchMenu[13].x, SearchMenu[13].y, SearchMenu[13].w, SearchMenu[13].h, UIThemes->MarkUnselected());
+	Gui::DrawStringCentered(23, SearchMenu[13].y + 5, 0.45f, UIThemes->TextColor(), Lang::get("UPDATE_ALL"), 200, 0, font);
 
 	/* AND / OR. */
-	Gui::Draw_Rect(SearchMenu[12].x, SearchMenu[12].y, SearchMenu[12].w, SearchMenu[12].h, (isAND ? UIThemes->MarkSelected() : UIThemes->MarkUnselected()));
-	Gui::DrawString(SearchMenu[12].x + 4, SearchMenu[12].y, 0.4f, UIThemes->TextColor(), "AND", 0, 0, font);
+	Gui::Draw_Rect(SearchMenu[14].x, SearchMenu[14].y, SearchMenu[14].w, SearchMenu[14].h, (isAND ? UIThemes->MarkSelected() : UIThemes->MarkUnselected()));
+	Gui::DrawString(SearchMenu[14].x + 4, SearchMenu[14].y, 0.4f, UIThemes->TextColor(), "AND", 0, 0, font);
 
-	Gui::Draw_Rect(SearchMenu[13].x, SearchMenu[13].y, SearchMenu[13].w, SearchMenu[13].h, (!isAND ? UIThemes->MarkSelected() : UIThemes->MarkUnselected()));
-	Gui::DrawString(SearchMenu[13].x + 8, SearchMenu[13].y, 0.4f, UIThemes->TextColor(), "OR", 0, 0, font);
+	Gui::Draw_Rect(SearchMenu[15].x, SearchMenu[15].y, SearchMenu[15].w, SearchMenu[15].h, (!isAND ? UIThemes->MarkSelected() : UIThemes->MarkUnselected()));
+	Gui::DrawString(SearchMenu[15].x + 8, SearchMenu[15].y, 0.4f, UIThemes->TextColor(), "OR", 0, 0, font);
 }
 
 /*
@@ -134,9 +146,10 @@ void StoreUtils::DrawSearchMenu(const std::vector<bool> &searchIncludes, const s
 	std::string &searchResult: Reference to the searchResult.
 	int &marks: Reference to the mark flags.
 	bool &updateFilter: Reference to the update filter.
+	bool &installedFilter: Reference to the installed filter.
 	bool &isAND: Reference to isAND boolean for AND / OR mode.
 */
-void StoreUtils::SearchHandle(std::vector<bool> &searchIncludes, std::string &searchResult, int &marks, bool &updateFilter, bool ascending, SortType sorttype, bool &isAND) {
+void StoreUtils::SearchHandle(std::vector<bool> &searchIncludes, std::string &searchResult, int &marks, bool &updateFilter, bool &installedFilter, bool ascending, SortType sorttype, bool &isAND) {
 	/* Checkboxes. */
 	if (hDown & KEY_TOUCH) {
 		bool didTouch = false;
@@ -191,13 +204,20 @@ void StoreUtils::SearchHandle(std::vector<bool> &searchIncludes, std::string &se
 				didTouch = true;
 
 			} else if (touching(touch, SearchMenu[11])) {
-				StoreUtils::AddAllToQueue();
+				installedFilter = !installedFilter;
+				didTouch = true;
 
 			} else if (touching(touch, SearchMenu[12])) {
+				StoreUtils::AddAllToQueue();
+
+			} else if (touching(touch, SearchMenu[13])) {
+				StoreUtils::UpdateAll();
+
+			} else if (touching(touch, SearchMenu[14])) {
 				isAND = true;
 				didTouch = true;
 
-			} else if (touching(touch, SearchMenu[13])) {
+			} else if (touching(touch, SearchMenu[15])) {
 				isAND = false;
 				didTouch = true;
 			}
@@ -206,7 +226,7 @@ void StoreUtils::SearchHandle(std::vector<bool> &searchIncludes, std::string &se
 		if (didTouch) {
 			if (StoreUtils::store && StoreUtils::store->GetValid()) { // Only search, when valid.
 				StoreUtils::ResetAll();
-				StoreUtils::search(searchResult, searchIncludes[0], searchIncludes[1], searchIncludes[2], searchIncludes[3], marks, updateFilter, isAND);
+				StoreUtils::search(searchResult, searchIncludes[0], searchIncludes[1], searchIncludes[2], searchIncludes[3], marks, updateFilter, installedFilter, isAND);
 				StoreUtils::store->SetScreenIndx(0);
 				StoreUtils::store->SetEntry(0);
 				StoreUtils::store->SetBox(0);
@@ -220,6 +240,7 @@ void StoreUtils::SearchHandle(std::vector<bool> &searchIncludes, std::string &se
 	if (hDown & KEY_X) {
 		marks = 0;
 		updateFilter = false;
+		installedFilter = false;
 		for(uint i = 0; i < searchIncludes.size(); i++) searchIncludes[i] = false;
 		searchResult = "";
 

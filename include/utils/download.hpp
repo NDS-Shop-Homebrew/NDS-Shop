@@ -33,6 +33,7 @@ enum DownloadError {
 	DL_ERROR_STATUSCODE,
 	DL_ERROR_GIT,
 	DL_CANCEL, // No clue if that's needed tho.
+	DL_ERROR_BATTERY = -4, // Battery is critically low, stop downloading.
 };
 
 struct StoreList {

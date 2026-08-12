@@ -96,6 +96,14 @@ public:
 	/* If showing prompt if action failed / succeeded. */
 	bool prompt() const { return this->v_prompt; };
 	void prompt(bool v) { this->v_prompt = v; if (!this->changesMade) this->changesMade = true; };
+
+	/* If auto-backup settings on startup. */
+	bool backup() const { return this->v_backup; };
+	void backup(bool v) { this->v_backup = v; if (!this->changesMade) this->changesMade = true; };
+
+	/* Block saving so a restore is not overwritten on exit. */
+	void blockSave(bool v) { this->v_blockSave = v; };
+	bool blockSave() const { return this->v_blockSave; };
 private:
 	/* Mainly helper. */
 	bool getBool(const std::string &key);
@@ -113,7 +121,9 @@ private:
 				v_shortcutPath = "sdmc:/3ds/Universal-Updater/shortcuts", v_firmPath = "sdmc:/luma/payloads", v_theme = "Default";
 
 	bool v_list = false, v_autoUpdate = true, v_metadata = true, v_updateCheck = true,
-		v_showBg = false, v_customFont = false, v_changelog = true, v_prompt = true, v_3dsxInFolder = false;
+		v_showBg = false, v_customFont = false, v_changelog = true, v_prompt = true, v_backup = true, v_3dsxInFolder = false;
+
+	bool v_blockSave = false;
 };
 
 #endif

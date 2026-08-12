@@ -172,22 +172,27 @@ Result ScriptUtils::downloadRelease(const std::string &repo, const std::string &
 		thread = threadCreate((ThreadFunc)Animation::displayProgressBar, NULL, 64 * 1024, prio - 1, -2, false);
 	}
 
-	if (downloadFromRelease("https://github.com/" + repo, file, out, includePrereleases) != 0) {
-		ret = FAILED_DOWNLOAD;
-
-		if (isARG) {
-			showProgressBar = false;
-
-			downloadFailed();
-
-			threadJoin(thread, U64_MAX);
-			threadFree(thread);
-		}
-		return ret;
+	/* Retry on transient (network) failures. A failed download is kept as a
+	 * ".part" file, so the next attempt resumes exactly where we stopped. */
+	Result dlRes = 0;
+	int attempts = 0;
+	const int MAX_DOWNLOAD_ATTEMPTS = 3;
+	while (attempts < MAX_DOWNLOAD_ATTEMPTS) {
+		attempts++;
+		dlRes = downloadFromRelease("https://github.com/" + repo, file, out, includePrereleases);
+		if (dlRes == 0) break;
+		if (dlRes == DL_ERROR_BATTERY) { ret = FAILED_DOWNLOAD_BATTERY; break; }
+		if (dlRes == DL_ERROR_GIT) break; // Deterministic: asset not found.
+		// Note: DL_ERROR_GIT is positive, everything else returned here is negative.
 	}
+	if (dlRes != 0 && ret == NONE) ret = FAILED_DOWNLOAD;
 
 	if (isARG) {
 		showProgressBar = false;
+
+		if (ret == FAILED_DOWNLOAD_BATTERY) Msg::waitMsg(Lang::get("DOWNLOAD_FAILED_BATTERY"));
+		else if (ret == FAILED_DOWNLOAD) downloadFailed();
+
 		threadJoin(thread, U64_MAX);
 		threadFree(thread);
 	}
@@ -216,23 +221,25 @@ Result ScriptUtils::downloadFile(const std::string &file, const std::string &out
 		thread = threadCreate((ThreadFunc)Animation::displayProgressBar, NULL, 64 * 1024, prio - 1, -2, false);
 	}
 
-	if (downloadToFile(file, out) != 0) {
-		ret = FAILED_DOWNLOAD;
-
-		if (isARG) {
-			showProgressBar = false;
-
-			downloadFailed();
-
-			threadJoin(thread, U64_MAX);
-			threadFree(thread);
-		}
-
-		return ret;
+	/* Retry on transient (network) failures. A failed download is kept as a
+	 * ".part" file, so the next attempt resumes exactly where we stopped. */
+	Result dlRes = 0;
+	int attempts = 0;
+	const int MAX_DOWNLOAD_ATTEMPTS = 3;
+	while (attempts < MAX_DOWNLOAD_ATTEMPTS) {
+		attempts++;
+		dlRes = downloadToFile(file, out);
+		if (dlRes == 0) break;
+		if (dlRes == DL_ERROR_BATTERY) { ret = FAILED_DOWNLOAD_BATTERY; break; }
 	}
+	if (dlRes != 0 && ret == NONE) ret = FAILED_DOWNLOAD;
 
 	if (isARG) {
 		showProgressBar = false;
+
+		if (ret == FAILED_DOWNLOAD_BATTERY) Msg::waitMsg(Lang::get("DOWNLOAD_FAILED_BATTERY"));
+		else if (ret == FAILED_DOWNLOAD) downloadFailed();
+
 		threadJoin(thread, U64_MAX);
 		threadFree(thread);
 	}
@@ -608,6 +615,7 @@ Result ScriptUtils::runFunctions(nlohmann::json storeJson, int selection, const 
 
 	if (ret == NONE || ret == SCRIPT_CANCELED) doneMsg();
 	else if (ret == FAILED_DOWNLOAD) Msg::waitMsg(Lang::get("DOWNLOAD_ERROR"));
+	else if (ret == FAILED_DOWNLOAD_BATTERY) Msg::waitMsg(Lang::get("DOWNLOAD_FAILED_BATTERY"));
 	else if (ret == SYNTAX_ERROR) Msg::waitMsg(Lang::get("SYNTAX_ERROR"));
 	else if (ret == COPY_ERROR) Msg::waitMsg(Lang::get("COPY_ERROR"));
 	else if (ret == MOVE_ERROR) Msg::waitMsg(Lang::get("MOVE_ERROR"));

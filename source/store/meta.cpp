@@ -21,6 +21,7 @@
 
 #include "common.hpp"
 #include "fileBrowse.hpp"
+#include "files.hpp"
 #include "meta.hpp"
 #include <unistd.h>
 
@@ -30,17 +31,29 @@
 	Includes MetaData file creation, if non existent.
 */
 Meta::Meta() {
+	/* If missing but a backup exists, restore it instead of creating a new one. */
 	if (access(_META_PATH, F_OK) != 0) {
-		FILE *temp = fopen(_META_PATH, "w");
-		char tmp[2] = { '{', '}' };
-		fwrite(tmp, sizeof(tmp), 1, temp);
-		fclose(temp);
+		if (!restoreBackup(_META_PATH)) {
+			FILE *temp = fopen(_META_PATH, "w");
+			char tmp[2] = { '{', '}' };
+			fwrite(tmp, sizeof(tmp), 1, temp);
+			fclose(temp);
+		}
 	}
 
 	FILE *temp = fopen(_META_PATH, "rt");
 	if (temp) {
 		this->metadataJson = nlohmann::json::parse(temp, nullptr, false);
 		fclose(temp);
+	}
+
+	/* If the metadata is corrupted, try to restore the backup. */
+	if (this->metadataJson.is_discarded() && restoreBackup(_META_PATH)) {
+		FILE *temp2 = fopen(_META_PATH, "rt");
+		if (temp2) {
+			this->metadataJson = nlohmann::json::parse(temp2, nullptr, false);
+			fclose(temp2);
+		}
 	}
 	if (this->metadataJson.is_discarded())
 		this->metadataJson = { };
@@ -155,6 +168,8 @@ std::vector<std::string> Meta::GetInstalled(const std::string &unistoreName, con
 	Write to file.. called on destructor.
 */
 void Meta::SaveCall() {
+	if (this->v_blockSave) return;
+
 	FILE *file = fopen(_META_PATH, "wb");
 	const std::string dump = this->metadataJson.dump(1, '\t');
 	fwrite(dump.c_str(), 1, dump.size(), file);

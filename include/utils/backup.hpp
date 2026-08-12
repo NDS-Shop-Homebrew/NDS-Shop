@@ -19,28 +19,19 @@
 *   Any changes to the code must be clearly marked as such to avoid confusion.
 */
 
-#ifndef _NDS_SHOP_FILES_HPP
-#define _NDS_SHOP_FILES_HPP
-
-#include "common.hpp"
-
-Result makeDirs(const char *path);
-Result openFile(Handle *fileHandle, const char *path, bool write);
-Result deleteFile(const char *path);
-Result removeDir(const char *path);
-Result removeDirRecursive(const char *path);
-u64 getAvailableSpace();
+#ifndef _NDS_SHOP_BACKUP_HPP
+#define _NDS_SHOP_BACKUP_HPP
 
 /*
-	Copy a file from source to destination.
-	@return True if the copy succeeded; false otherwise.
+	Backup the config and metadata files.
+	@param force: If true, the backup is done even if the backup setting is disabled.
 */
-bool copyFile(const std::string &source, const std::string &destination);
+void BackupSettings(bool force = false);
 
 /*
-	Restore a file from its backup (path + ".bak").
-	@return True if a backup existed and was restored; false otherwise.
+	Restore the config and metadata files from their backups.
+	@return True if at least one backup existed and was restored.
 */
-bool restoreBackup(const std::string &path);
+bool RestoreSettings();
 
 #endif

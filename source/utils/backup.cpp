@@ -19,28 +19,30 @@
 *   Any changes to the code must be clearly marked as such to avoid confusion.
 */
 
-#ifndef _NDS_SHOP_FILES_HPP
-#define _NDS_SHOP_FILES_HPP
-
+#include "backup.hpp"
 #include "common.hpp"
+#include "files.hpp"
+#include "meta.hpp"
+#include "storeUtils.hpp"
 
-Result makeDirs(const char *path);
-Result openFile(Handle *fileHandle, const char *path, bool write);
-Result deleteFile(const char *path);
-Result removeDir(const char *path);
-Result removeDirRecursive(const char *path);
-u64 getAvailableSpace();
+void BackupSettings(bool force) {
+	if (!force && !config->backup()) return;
 
-/*
-	Copy a file from source to destination.
-	@return True if the copy succeeded; false otherwise.
-*/
-bool copyFile(const std::string &source, const std::string &destination);
+	copyFile(_CONFIG_PATH, std::string(_CONFIG_PATH) + ".bak");
+	copyFile(_META_PATH, std::string(_META_PATH) + ".bak");
+}
 
-/*
-	Restore a file from its backup (path + ".bak").
-	@return True if a backup existed and was restored; false otherwise.
-*/
-bool restoreBackup(const std::string &path);
+bool RestoreSettings() {
+	bool restored = false;
 
-#endif
+	if (restoreBackup(_CONFIG_PATH)) restored = true;
+	if (restoreBackup(_META_PATH)) restored = true;
+
+	if (restored) {
+		/* Prevent the destructors from overwriting the restored files. */
+		if (config) config->blockSave(true);
+		if (StoreUtils::meta) StoreUtils::meta->blockSave(true);
+	}
+
+	return restored;
+}
