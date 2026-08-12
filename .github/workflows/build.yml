@@ -2,13 +2,9 @@ name: Build NDS-Shop
 
 on:
   push:
-    branches: [dev]
+    branches: [main]
     tags:
       - 'v*'
-    paths-ignore:
-      - 'README.md'
-  pull_request:
-    branches: ["*"]
     paths-ignore:
       - 'README.md'
   workflow_dispatch:
