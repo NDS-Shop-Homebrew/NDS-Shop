@@ -1000,8 +1000,10 @@ void UpdateAction() {
 			if ((down & KEY_A) || (down & KEY_B) || (down & KEY_START) || (down & KEY_TOUCH)) confirmed = true;
 		}
 
-		Result dlRes = ScriptUtils::downloadRelease("NDS-Shop-Homebrew/NDS-Shop", (is3DSX ? "NDS-Shop.3dsx" : "NDS-Shop.cia"),
-				(is3DSX ? _3dsxPath : "sdmc:/NDS-Shop.cia"), false, Lang::get("DONLOADING_NDS_SHOP"), true);
+		/* Fallback CIA si run en 3DSX sans chemin (emulateur ou argv vide). */
+		bool use3dsx = is3DSX && !_3dsxPath.empty();
+		Result dlRes = ScriptUtils::downloadRelease("NDS-Shop-Homebrew/NDS-Shop", (use3dsx ? "NDS-Shop.3dsx" : "NDS-Shop.cia"),
+				(use3dsx ? _3dsxPath : "sdmc:/NDS-Shop.cia"), false, Lang::get("DONLOADING_NDS_SHOP"), true);
 
 		if (dlRes == ScriptState::NONE) {
 			if (is3DSX) {
