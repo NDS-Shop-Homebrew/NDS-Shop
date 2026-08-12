@@ -167,7 +167,7 @@ static size_t file_handle_data(char *ptr, size_t size, size_t nmemb, void *userd
 	const std::string &path: Where to place the file.
 */
 Result downloadToFile(const std::string &url, const std::string &path) {
-	if (!checkWifiStatus()) return -1; // NO WIFI.
+	if (!checkWifiStatus()) { printf("[DBG] checkWifiStatus=false\n"); return -1; }
 
 	bool needToDelete = false;
 	downloadTotal = 1;
@@ -186,16 +186,18 @@ Result downloadToFile(const std::string &url, const std::string &path) {
 	printf("Downloading from:\n%s\nto:\n%s\n", url.c_str(), path.c_str());
 
 	/* We refuse to start a download while the battery is critically low. */
-	if (battery_is_critical()) return DL_ERROR_BATTERY;
+	if (battery_is_critical()) { printf("[DBG] battery critical\n"); return DL_ERROR_BATTERY; }
 
 	void *socubuf = memalign(0x1000, 0x100000);
 	if (!socubuf) {
+		printf("[DBG] socubuf alloc fail\n");
 		retcode = -1;
 		goto exit;
 	}
 
 	res = socInit((u32 *)socubuf, 0x100000);
 	if (R_FAILED(res)) {
+		printf("[DBG] socInit fail: %08lX\n", res);
 		retcode = res;
 		goto exit;
 	}
@@ -212,6 +214,7 @@ Result downloadToFile(const std::string &url, const std::string &path) {
 
 	downfile = fopen(path.c_str(), "wb");
 	if (!downfile) {
+		printf("[DBG] fopen fail: %s\n", path.c_str());
 		retcode = -2;
 		goto exit;
 	}
@@ -236,16 +239,19 @@ Result downloadToFile(const std::string &url, const std::string &path) {
 	curl_easy_setopt(CurlHandle, CURLOPT_VERBOSE, 1L);
 	curl_easy_setopt(CurlHandle, CURLOPT_STDERR, stdout);
 
+	printf("[DBG] performing curl_easy_perform...\n");
 	curlResult = curl_easy_perform(CurlHandle);
 	curl_easy_cleanup(CurlHandle);
 	CurlHandle = nullptr;
+	printf("[DBG] curl done: %d\n", curlResult);
 
 	if (curlResult != CURLE_OK) {
 		if (g_batteryCritical) {
-			/* Battery ran critically low during the download: stop. */
+			printf("[DBG] battery critical during download\n");
 			retcode = DL_ERROR_BATTERY;
 			goto exit;
 		}
+		printf("[DBG] curl error: %d\n", curlResult);
 		retcode = -curlResult;
 		needToDelete = true;
 		goto exit;
@@ -259,12 +265,15 @@ Result downloadToFile(const std::string &url, const std::string &path) {
 	g_index = !g_index;
 
 	if (!filecommit()) {
+		printf("[DBG] final filecommit failed\n");
 		retcode = -3;
 		needToDelete = true;
 		goto exit;
 	}
 
 	fflush(downfile);
+
+	printf("[DBG] downloadToFile SUCCESS\n");
 
 	printf("Download finished: %s\n", path.c_str());
 
@@ -463,8 +472,14 @@ Result downloadFromRelease(const std::string &url, const std::string &asset, con
 	result_sz = 0;
 	result_written = 0;
 
-	if (assetUrl.empty() || ret != 0) ret = DL_ERROR_GIT;
-	else ret = downloadToFile(assetUrl, path);
+	if (assetUrl.empty() || ret != 0) {
+		printf("[DBG] asset not found or error, ret=%d\n", ret);
+		ret = DL_ERROR_GIT;
+	} else {
+		printf("[DBG] asset URL found: %s\n", assetUrl.c_str());
+		ret = downloadToFile(assetUrl, path);
+		printf("[DBG] downloadToFile returned: %d\n", ret);
+	}
 
 	return ret;
 }
