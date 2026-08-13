@@ -1012,7 +1012,7 @@ void UpdateAction() {
 				return;
 			}
 
-			ScriptUtils::installFile("sdmc:/NDS-Shop.cia", false, Lang::get("INSTALL_NDS_SHOP"), true);
+			ScriptUtils::installFile("sdmc:/NDS-Shop.cia", true, Lang::get("INSTALL_NDS_SHOP"), true);
 			ScriptUtils::removeFile("sdmc:/NDS-Shop.cia", true);
 			Msg::waitMsg(Lang::get("UPDATE_DONE"));
 			exiting = true;
