@@ -124,12 +124,9 @@ Result Init::Initialize() {
 
 	/* Create Directories, if missing. */
 	mkdir("sdmc:/3ds", 0777);
-	mkdir("sdmc:/3ds/Universal-Updater", 0777);
-	mkdir("sdmc:/3ds/Universal-Updater/stores", 0777);
-	mkdir("sdmc:/3ds/Universal-Updater/shortcuts", 0777);
-	mkdir("sdmc:/3ds/Universal-Updater/NDS-Shop", 0777);
-	mkdir("sdmc:/3ds/Universal-Updater/NDS-Shop/config", 0777);
-	mkdir("sdmc:/3ds/Universal-Updater/NDS-Shop/themes", 0777);
+	mkdir("sdmc:/3ds/NDS-Shop", 0777);
+	mkdir("sdmc:/3ds/NDS-Shop/stores", 0777);
+	mkdir("sdmc:/3ds/NDS-Shop/shortcuts", 0777);
 
 	/* Create title database, if missing. */
 	AM_InitializeExternalTitleDatabase(false);

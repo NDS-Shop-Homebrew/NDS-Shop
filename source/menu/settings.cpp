@@ -239,7 +239,7 @@ static void DrawGUISettings(int selection) {
 	- Access the UniStore Manage Handle.
 	- Enable UniStore auto update on boot.
 	- Show the Credits.
-	- Exit Universal-Updater.
+	- Exit NDS-Shop.
 
 	int &page: Reference to the page.
 	bool &dspSettings: Reference to the display Settings.
@@ -468,7 +468,7 @@ static void SettingsHandleDir(int &page, int &selection) {
 	Here you can..
 
 	- Enable / Disable Automatically updating the UniStore on boot.
-	- Enable / Disable Automatically check for Universal-Updater updates on boot.
+	- Enable / Disable Automatically check for NDS-Shop updates on boot.
 
 	int &page: Reference to the page.
 	int &selection: Reference to the Selection.

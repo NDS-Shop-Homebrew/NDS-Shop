@@ -32,7 +32,8 @@
 
 #define _STORE_PATH "sdmc:/3ds/NDS-Shop/stores/"
 #define _META_PATH "sdmc:/3ds/NDS-Shop/MetaData.json"
-#define _CONFIG_PATH "sdmc:/3ds/NDS-Shop/config/Config.json"
+#define _THEME_PATH "sdmc:/3ds/NDS-Shop/Themes.json"
+#define _CONFIG_PATH "sdmc:/3ds/NDS-Shop/Config.json"
 #define _THEME_AMOUNT 2
 #define _UNISTORE_VERSION 4
 
