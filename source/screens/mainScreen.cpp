@@ -68,7 +68,7 @@ MainScreen::MainScreen() {
 
 	/* If Universal DB --> Get! */
 	if (config->lastStore() == "db-nds-shop.unistore" || config->lastStore() == "") {
-		if (access("sdmc:/3ds/Universal-Updater/stores/db-nds-shop.unistore", F_OK) != 0) {
+		if (access("sdmc:/3ds/NDS-Shop/stores/db-nds-shop.unistore", F_OK) != 0) {
 			if (checkWifiStatus()) {
 				std::string tmp = ""; // Just a temp.
 				DownloadUniStore("https://db-nds-shop.fr/unistore/db-nds-shop.unistore", -1, tmp, true, true);
@@ -79,7 +79,7 @@ MainScreen::MainScreen() {
 			}
 
 		} else {
-			const UniStoreInfo info = GetInfo("sdmc:/3ds/Universal-Updater/stores/db-nds-shop.unistore", "db-nds-shop.unistore");
+			const UniStoreInfo info = GetInfo("sdmc:/3ds/NDS-Shop/stores/db-nds-shop.unistore", "db-nds-shop.unistore");
 
 			if (info.Version != 3 && info.Version != _UNISTORE_VERSION) {
 				if (checkWifiStatus()) {
