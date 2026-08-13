@@ -950,8 +950,7 @@ NDSShopUpdate IsNDSShopUpdateAvailable() {
 	return { false, "", "" };
 }
 
-extern bool is3DSX, exiting;
-extern std::string _3dsxPath;
+extern bool exiting;
 
 /*
 	Execute U-U update action.
@@ -1000,23 +999,85 @@ void UpdateAction() {
 			if ((down & KEY_A) || (down & KEY_B) || (down & KEY_START) || (down & KEY_TOUCH)) confirmed = true;
 		}
 
-		/* Comme Ghost-eShop (fork U-U qui fonctionne) :
-		 * downloadRelease == 0 → installFile avec updatingSelf=false,
-		 * waitMsg(UPDATE_DONE), puis exiting. Pas de exiting avant. */
-		if (ScriptUtils::downloadRelease("NDS-Shop-Homebrew/NDS-Shop", (is3DSX ? "NDS-Shop.3dsx" : "NDS-Shop.cia"),
-				(is3DSX ? _3dsxPath : "sdmc:/NDS-Shop.cia"), false, Lang::get("DONLOADING_NDS_SHOP"), true) == 0) {
+		/* Auto-update simplifie (inspire de hShop) :
+		 * - downloadFromRelease → telechargement direct
+		 * - AM_StartCiaInstall + read/write → installation sans DeletePrevious
+		 * - Pas de thread, pas de Launch, pas de retry complexe
+		 * L'app quitte, le user relance manuellement. */
+		dbgLog("SimpleUpdate: downloading %s", "NDS-Shop.cia");
+		if (downloadFromRelease("https://github.com/NDS-Shop-Homebrew/NDS-Shop", "NDS-Shop.cia", "sdmc:/NDS-Shop.cia", false) == 0) {
+			dbgLog("SimpleUpdate: download OK, installing...");
 
-			if (is3DSX) {
-				Msg::waitMsg(Lang::get("UPDATE_DONE"));
-				exiting = true;
-				return;
+			/* Installation directe du CIA (sans DeletePrevious, sans Launch). */
+			Handle fileHandle, ciaHandle;
+			AM_TitleEntry info;
+			Result ret = 0;
+			u64 size = 0;
+
+			ret = openFile(&fileHandle, "sdmc:/NDS-Shop.cia", false);
+			if (R_FAILED(ret)) {
+				dbgLog("SimpleUpdate: openFile fail: %08lX", (unsigned long)ret);
+				goto cleanup;
 			}
 
-			ScriptUtils::installFile("sdmc:/NDS-Shop.cia", false, Lang::get("INSTALL_NDS_SHOP"), true);
-			ScriptUtils::removeFile("sdmc:/NDS-Shop.cia", true);
-			Msg::waitMsg(Lang::get("UPDATE_DONE"));
-			exiting = true;
+			ret = AM_GetCiaFileInfo(MEDIATYPE_SD, &info, fileHandle);
+			if (R_FAILED(ret)) {
+				dbgLog("SimpleUpdate: AM_GetCiaFileInfo fail: %08lX", (unsigned long)ret);
+				FSFILE_Close(fileHandle);
+				goto cleanup;
+			}
+
+			ret = FSFILE_GetSize(fileHandle, &size);
+			if (R_FAILED(ret)) {
+				dbgLog("SimpleUpdate: FSFILE_GetSize fail: %08lX", (unsigned long)ret);
+				FSFILE_Close(fileHandle);
+				goto cleanup;
+			}
+
+			if (getAvailableSpace() >= size) {
+				FS_MediaType media = (info.titleID >> 32) == 0x00040000 ? MEDIATYPE_SD : MEDIATYPE_NAND;
+				ret = AM_StartCiaInstall(media, &ciaHandle);
+				if (R_FAILED(ret)) {
+					dbgLog("SimpleUpdate: AM_StartCiaInstall fail: %08lX", (unsigned long)ret);
+					FSFILE_Close(fileHandle);
+					goto cleanup;
+				}
+
+				{
+					u8 buf[0x20000];
+					u64 offset = 0;
+					while (offset < size) {
+						u32 bytes_read = 0, bytes_written = 0;
+						FSFILE_Read(fileHandle, &bytes_read, offset, buf, sizeof(buf));
+						if (bytes_read == 0) break;
+						ret = FSFILE_Write(ciaHandle, &bytes_written, offset, buf, bytes_read, FS_WRITE_FLUSH);
+						if (R_FAILED(ret)) {
+							dbgLog("SimpleUpdate: write fail at %llu: %08lX", (unsigned long long)offset, (unsigned long)ret);
+							break;
+						}
+						offset += bytes_read;
+					}
+
+					if (R_SUCCEEDED(ret)) {
+						ret = AM_FinishCiaInstall(ciaHandle);
+						if (R_FAILED(ret))
+							dbgLog("SimpleUpdate: AM_FinishCiaInstall fail: %08lX", (unsigned long)ret);
+						else
+							dbgLog("SimpleUpdate: install OK");
+					}
+				}
+			} else {
+				dbgLog("SimpleUpdate: not enough space");
+			}
+			FSFILE_Close(fileHandle);
+		} else {
+			dbgLog("SimpleUpdate: download failed");
 		}
+
+cleanup:
+		deleteFile("sdmc:/NDS-Shop.cia");
+		Msg::waitMsg(Lang::get("UPDATE_DONE"));
+		exiting = true;
 	}
 }
 
