@@ -1000,23 +1000,22 @@ void UpdateAction() {
 			if ((down & KEY_A) || (down & KEY_B) || (down & KEY_START) || (down & KEY_TOUCH)) confirmed = true;
 		}
 
-		/* Fallback CIA si run en 3DSX sans chemin (emulateur ou argv vide). */
-		bool use3dsx = is3DSX && !_3dsxPath.empty();
-		Result dlRes = ScriptUtils::downloadRelease("NDS-Shop-Homebrew/NDS-Shop", (use3dsx ? "NDS-Shop.3dsx" : "NDS-Shop.cia"),
-				(use3dsx ? _3dsxPath : "sdmc:/NDS-Shop.cia"), false, Lang::get("DONLOADING_NDS_SHOP"), true);
+		/* Comme Ghost-eShop (fork U-U qui fonctionne) :
+		 * downloadRelease == 0 → installFile avec updatingSelf=false,
+		 * waitMsg(UPDATE_DONE), puis exiting. Pas de exiting avant. */
+		if (ScriptUtils::downloadRelease("NDS-Shop-Homebrew/NDS-Shop", (is3DSX ? "NDS-Shop.3dsx" : "NDS-Shop.cia"),
+				(is3DSX ? _3dsxPath : "sdmc:/NDS-Shop.cia"), false, Lang::get("DONLOADING_NDS_SHOP"), true) == 0) {
 
-		if (dlRes == ScriptState::NONE) {
-			exiting = true;
-
-			/* Comme Universal-Updater : le .cia est installe puis supprime,
-			 * l'app quitte et le user relance manuellement. */
 			if (is3DSX) {
 				Msg::waitMsg(Lang::get("UPDATE_DONE"));
+				exiting = true;
 				return;
 			}
 
-			ScriptUtils::installFile("sdmc:/NDS-Shop.cia", Lang::get("INSTALL_NDS_SHOP"), true);
+			ScriptUtils::installFile("sdmc:/NDS-Shop.cia", false, Lang::get("INSTALL_NDS_SHOP"), true);
 			ScriptUtils::removeFile("sdmc:/NDS-Shop.cia", true);
+			Msg::waitMsg(Lang::get("UPDATE_DONE"));
+			exiting = true;
 		}
 	}
 }

@@ -248,7 +248,7 @@ Result ScriptUtils::downloadFile(const std::string &file, const std::string &out
 }
 
 /* Install CIA files. */
-void ScriptUtils::installFile(const std::string &file, const std::string &message, bool isARG) {
+void ScriptUtils::installFile(const std::string &file, bool updatingSelf, const std::string &message, bool isARG) {
 	std::string in;
 	in = std::regex_replace(file, std::regex("%ARCHIVE_DEFAULT%"), config->archPath());
 	in = std::regex_replace(in, std::regex("%3DSX%/(.*)\\.(.*)"), config->_3dsxPath() + (config->_3dsxInFolder() ? "/$1/$1.$2" : "/$1.$2"));
@@ -266,7 +266,7 @@ void ScriptUtils::installFile(const std::string &file, const std::string &messag
 		thread = threadCreate((ThreadFunc)Animation::displayProgressBar, NULL, 64 * 1024, prio - 1, -2, false);
 	}
 
-	Title::Install(in.c_str());
+	Title::Install(in.c_str(), updatingSelf);
 
 	if (isARG) {
 		showProgressBar = false;
@@ -486,7 +486,7 @@ Result ScriptUtils::runFunctions(nlohmann::json storeJson, int selection, const 
 				else ret = SYNTAX_ERROR;
 
 			} else if (type == "installCia") {
-				bool missing = false;
+				bool missing = false, updateSelf = false;
 				std::string file = "";
 
 				if (Script[i].contains("file") && Script[i]["file"].is_string()) {
@@ -494,10 +494,14 @@ Result ScriptUtils::runFunctions(nlohmann::json storeJson, int selection, const 
 				}
 				else missing = true;
 
+				if (Script[i].contains("updateSelf") && Script[i]["updateSelf"].is_boolean()) {
+					updateSelf = Script[i]["updateSelf"];
+				}
+
 				char message[256];
 				snprintf(message, sizeof(message), Lang::get("SHORTCUT_INSTALLING").c_str(), file.substr(file.find_first_of("/") + 1).c_str());
 
-				if (!missing) ScriptUtils::installFile(file, message, true);
+				if (!missing) ScriptUtils::installFile(file, updateSelf, message, true);
 				else ret = SYNTAX_ERROR;
 
 			} else if (type == "mkdir") {
