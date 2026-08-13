@@ -104,7 +104,7 @@ static FS_MediaType getTitleDestination(u64 titleId) {
 
 u32 installSize = 0, installOffset = 0;
 
-Result Title::Install(const char *ciaPath) {
+Result Title::Install(const char *ciaPath, bool updatingSelf) {
 	u32 bytes_read = 0, bytes_written;
 	installSize = 0, installOffset = 0; u64 size = 0;
 	Handle ciaHandle, fileHandle;
@@ -112,7 +112,7 @@ Result Title::Install(const char *ciaPath) {
 	Result ret = 0;
 	FS_MediaType media = MEDIATYPE_SD;
 
-	dbgLog("Install: %s", ciaPath);
+	dbgLog("Install: %s (updatingSelf=%d)", ciaPath, updatingSelf);
 
 	ret = openFile(&fileHandle, ciaPath, false);
 	if (R_FAILED(ret)) {
@@ -131,14 +131,15 @@ Result Title::Install(const char *ciaPath) {
 
 	media = getTitleDestination(info.titleID);
 
-	/* Comme Universal-Updater : suppression TOUJOURS du titre precedent
-	 * avant d'installer. Pas de relance auto, l'app quitte et le user
-	 * relance manuellement. */
-	dbgLog("DeletePrevious media=%d", media);
-	ret = Title::DeletePrevious(info.titleID, media);
-	if (R_FAILED(ret)) {
-		dbgLog("DeletePrevious failed: %08lX", (unsigned long)ret);
-		return ret;
+	/* Comme Ghost-eShop (fork U-U qui fonctionne) :
+	 * updatingSelf=false → DeletePrevious TOUJOURS pour l'auto-update */
+	if (!updatingSelf) {
+		dbgLog("DeletePrevious media=%d", media);
+		ret = Title::DeletePrevious(info.titleID, media);
+		if (R_FAILED(ret)) {
+			dbgLog("DeletePrevious failed: %08lX", (unsigned long)ret);
+			return ret;
+		}
 	}
 
 	ret = FSFILE_GetSize(fileHandle, &size);
@@ -168,12 +169,20 @@ Result Title::Install(const char *ciaPath) {
 			return -1;
 		}
 
+		dbgLog("installSize=%lu, starting write loop", (unsigned long)size);
 		installSize = size;
-		do {
+		while(installOffset < installSize) {
 			FSFILE_Read(fileHandle, &bytes_read, installOffset, buf, toRead);
-			FSFILE_Write(ciaHandle, &bytes_written, installOffset, buf, toRead, FS_WRITE_FLUSH);
+			ret = FSFILE_Write(ciaHandle, &bytes_written, installOffset, buf, toRead, FS_WRITE_FLUSH);
+			if (R_FAILED(ret)) {
+				dbgLog("FSFILE_Write failed: %08lX", (unsigned long)ret);
+				printf("Error in:\nFSFILE_Write\n");
+				delete[] buf;
+				FSFILE_Close(fileHandle);
+				return ret;
+			}
 			installOffset += bytes_read;
-		} while(installOffset < installSize);
+		}
 		delete[] buf;
 
 		dbgLog("AM_FinishCiaInstall");
