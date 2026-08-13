@@ -104,7 +104,7 @@ static FS_MediaType getTitleDestination(u64 titleId) {
 
 u32 installSize = 0, installOffset = 0;
 
-Result Title::Install(const char *ciaPath, bool updatingSelf) {
+Result Title::Install(const char *ciaPath) {
 	u32 bytes_read = 0, bytes_written;
 	installSize = 0, installOffset = 0; u64 size = 0;
 	Handle ciaHandle, fileHandle;
@@ -112,7 +112,7 @@ Result Title::Install(const char *ciaPath, bool updatingSelf) {
 	Result ret = 0;
 	FS_MediaType media = MEDIATYPE_SD;
 
-	dbgLog("Install: %s (updatingSelf=%d)", ciaPath, updatingSelf);
+	dbgLog("Install: %s", ciaPath);
 
 	ret = openFile(&fileHandle, ciaPath, false);
 	if (R_FAILED(ret)) {
@@ -131,11 +131,9 @@ Result Title::Install(const char *ciaPath, bool updatingSelf) {
 
 	media = getTitleDestination(info.titleID);
 
-	/* ponytail: comme Universal-Updater, on supprime TOUJOURS le titre
-	 * precedent avant d'installer, meme pour l'auto-update.
-	 * Le Launch auto (updatingSelf) est retire : l'app quitte et le user
-	 * relance manuellement, c'est plus fiable sur 3DS. */
-	(void)updatingSelf;
+	/* Comme Universal-Updater : suppression TOUJOURS du titre precedent
+	 * avant d'installer. Pas de relance auto, l'app quitte et le user
+	 * relance manuellement. */
 	dbgLog("DeletePrevious media=%d", media);
 	ret = Title::DeletePrevious(info.titleID, media);
 	if (R_FAILED(ret)) {
