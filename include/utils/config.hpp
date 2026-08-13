@@ -121,7 +121,7 @@ private:
 				v_shortcutPath = "sdmc:/3ds/NDS-Shop/shortcuts", v_firmPath = "sdmc:/luma/payloads", v_theme = "Default";
 
 	bool v_list = false, v_autoUpdate = true, v_metadata = true, v_updateCheck = true,
-		v_showBg = false, v_customFont = false, v_changelog = true, v_prompt = true, v_backup = true, v_3dsxInFolder = false;
+		v_showBg = false, v_customFont = false, v_changelog = false, v_prompt = true, v_backup = true, v_3dsxInFolder = false;
 
 	bool v_blockSave = false;
 };
