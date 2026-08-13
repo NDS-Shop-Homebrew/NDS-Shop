@@ -956,7 +956,7 @@ extern bool exiting;
 	Execute U-U update action.
 */
 void UpdateAction() {
-	dbgLog("SimpleUpdate: v1.0.1 build");
+	dbgLog("SimpleUpdate: v1.0.2 build");
 	NDSShopUpdate res = IsNDSShopUpdateAvailable();
 	if (res.Available) {
 		bool confirmed = false;
