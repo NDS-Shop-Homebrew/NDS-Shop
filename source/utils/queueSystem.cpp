@@ -193,7 +193,7 @@ void QueueSystem::QueueHandle() {
 
 			/* Installing CIAs. */
 			} else if (type == "installCia") {
-				bool missing = false, updateSelf = false;
+				bool missing = false;
 				std::string file = "";
 				queueEntries[0]->status = QueueStatus::Installing;
 
@@ -201,11 +201,7 @@ void QueueSystem::QueueHandle() {
 					file = queueEntries[0]->obj[i]["file"];
 				} else missing = true;
 
-				if (queueEntries[0]->obj[i].contains("updateSelf") && queueEntries[0]->obj[i]["updateSelf"].is_boolean()) {
-					updateSelf = queueEntries[0]->obj[i]["updateSelf"];
-				}
-
-				if (!missing) ScriptUtils::installFile(file, updateSelf, "");
+				if (!missing) ScriptUtils::installFile(file, "");
 				else ret = SYNTAX_ERROR;
 
 			} else if (type == "mkdir") {

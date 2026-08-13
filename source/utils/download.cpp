@@ -1006,16 +1006,17 @@ void UpdateAction() {
 				(use3dsx ? _3dsxPath : "sdmc:/NDS-Shop.cia"), false, Lang::get("DONLOADING_NDS_SHOP"), true);
 
 		if (dlRes == ScriptState::NONE) {
+			exiting = true;
+
+			/* Comme Universal-Updater : le .cia est installe puis supprime,
+			 * l'app quitte et le user relance manuellement. */
 			if (is3DSX) {
 				Msg::waitMsg(Lang::get("UPDATE_DONE"));
-				exiting = true;
 				return;
 			}
 
-			ScriptUtils::installFile("sdmc:/NDS-Shop.cia", true, Lang::get("INSTALL_NDS_SHOP"), true);
+			ScriptUtils::installFile("sdmc:/NDS-Shop.cia", Lang::get("INSTALL_NDS_SHOP"), true);
 			ScriptUtils::removeFile("sdmc:/NDS-Shop.cia", true);
-			Msg::waitMsg(Lang::get("UPDATE_DONE"));
-			exiting = true;
 		}
 	}
 }
