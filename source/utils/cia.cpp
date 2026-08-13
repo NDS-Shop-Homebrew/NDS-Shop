@@ -22,6 +22,22 @@
 #include "cia.hpp"
 #include "files.hpp"
 
+#include <cstdarg>
+#include <cstdio>
+
+/* Write a line to sdmc:/nds-dl.log for remote debugging. */
+static void dbgLog(const char *fmt, ...) {
+	FILE *f = fopen("sdmc:/nds-dl.log", "a");
+	if (!f) return;
+	fprintf(f, "[INSTALL] ");
+	va_list args;
+	va_start(args, fmt);
+	vfprintf(f, fmt, args);
+	va_end(args);
+	fprintf(f, "\n");
+	fclose(f);
+}
+
 Result Title::Launch(u64 titleId, FS_MediaType mediaType) {
 	Result ret = 0;
 	u8 param[0x300];
@@ -96,35 +112,51 @@ Result Title::Install(const char *ciaPath, bool updatingSelf) {
 	Result ret = 0;
 	FS_MediaType media = MEDIATYPE_SD;
 
+	dbgLog("Install: %s (updatingSelf=%d)", ciaPath, updatingSelf);
+
 	ret = openFile(&fileHandle, ciaPath, false);
 	if (R_FAILED(ret)) {
+		dbgLog("openFile failed: %08lX", (unsigned long)ret);
 		printf("Error in:\nopenFile\n");
 		return ret;
 	}
 
 	ret = AM_GetCiaFileInfo(media, &info, fileHandle);
 	if (R_FAILED(ret)) {
+		dbgLog("AM_GetCiaFileInfo failed: %08lX", (unsigned long)ret);
 		printf("Error in:\nAM_GetCiaFileInfo\n");
 		return ret;
 	}
+	dbgLog("titleID: %016llX", (unsigned long long)info.titleID);
 
 	media = getTitleDestination(info.titleID);
 
-	if (!updatingSelf) {
-		ret = Title::DeletePrevious(info.titleID, media);
-		if (R_FAILED(ret)) return ret;
+	/* ponytail: comme Universal-Updater, on supprime TOUJOURS le titre
+	 * precedent avant d'installer, meme pour l'auto-update.
+	 * Le Launch auto (updatingSelf) est retire : l'app quitte et le user
+	 * relance manuellement, c'est plus fiable sur 3DS. */
+	(void)updatingSelf;
+	dbgLog("DeletePrevious media=%d", media);
+	ret = Title::DeletePrevious(info.titleID, media);
+	if (R_FAILED(ret)) {
+		dbgLog("DeletePrevious failed: %08lX", (unsigned long)ret);
+		return ret;
 	}
 
 	ret = FSFILE_GetSize(fileHandle, &size);
 	if (R_FAILED(ret)) {
+		dbgLog("FSFILE_GetSize failed: %08lX", (unsigned long)ret);
 		printf("Error in:\nFSFILE_GetSize\n");
 		FSFILE_Close(fileHandle);
 		return ret;
 	}
+	dbgLog("cia size: %llu, space: %llu", (unsigned long long)size, (unsigned long long)getAvailableSpace());
 
 	if (getAvailableSpace() >= size) {
+		dbgLog("AM_StartCiaInstall media=%d", media);
 		ret = AM_StartCiaInstall(media, &ciaHandle);
 		if (R_FAILED(ret)) {
+			dbgLog("AM_StartCiaInstall failed: %08lX", (unsigned long)ret);
 			printf("Error in:\nAM_StartCiaInstall\n");
 			FSFILE_Close(fileHandle);
 			return ret;
@@ -146,8 +178,10 @@ Result Title::Install(const char *ciaPath, bool updatingSelf) {
 		} while(installOffset < installSize);
 		delete[] buf;
 
+		dbgLog("AM_FinishCiaInstall");
 		ret = AM_FinishCiaInstall(ciaHandle);
 		if (R_FAILED(ret)) {
+			dbgLog("AM_FinishCiaInstall failed: %08lX", (unsigned long)ret);
 			printf("Error in:\nAM_FinishCiaInstall\n");
 			FSFILE_Close(fileHandle);
 			return ret;
@@ -156,13 +190,11 @@ Result Title::Install(const char *ciaPath, bool updatingSelf) {
 
 	ret = FSFILE_Close(fileHandle);
 	if (R_FAILED(ret)) {
+		dbgLog("FSFILE_Close failed: %08lX", (unsigned long)ret);
 		printf("Error in:\nFSFILE_Close\n");
 		return ret;
 	}
 
-	if (updatingSelf) {
-		if (R_FAILED(ret = Title::Launch(info.titleID, MEDIATYPE_SD))) return ret;
-	}
-
+	dbgLog("Install OK");
 	return 0;
 }
