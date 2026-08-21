@@ -14,8 +14,6 @@
 *   
 *   If you have any suggestions or find any bugs, please let us know!
 *   
-*   NDS-Shop Team reserves the right to update the license terms
-*	at any time without prior notice.
 *   Any changes to the code must be clearly marked as such to avoid confusion.
 */
 

@@ -14,8 +14,6 @@
 *   
 *   If you have any suggestions or find any bugs, please let us know!
 *   
-*   NDS-Shop Team reserves the right to update the license terms
-*	at any time without prior notice.
 *   Any changes to the code must be clearly marked as such to avoid confusion.
 */
 
@@ -25,9 +23,9 @@
 
 C2D_Image Screenshot::Convert(const std::string &filename) {
 	std::vector<u8> ImageBuffer;
-	unsigned width, height;
-	C2D_Image img;
-	lodepng::decode(ImageBuffer, width, height, filename);
+	unsigned width = 0, height = 0;
+	C2D_Image img = { };
+	if (lodepng::decode(ImageBuffer, width, height, filename) != 0 || width == 0 || height == 0) return img;
 
 	img.tex = new C3D_Tex;
 	img.subtex = new Tex3DS_SubTexture({(u16)width, (u16)height, 0.0f, 1.0f, width / 512.0f, 1.0f - (height / 512.0f)});
@@ -56,9 +54,9 @@ C2D_Image Screenshot::Convert(const std::string &filename) {
 
 C2D_Image Screenshot::ConvertFromBuffer(const std::vector<u8> &buffer) {
 	std::vector<u8> ImageBuffer;
-	unsigned width, height;
-	C2D_Image img;
-	lodepng::decode(ImageBuffer, width, height, buffer);
+	unsigned width = 0, height = 0;
+	C2D_Image img = { };
+	if (lodepng::decode(ImageBuffer, width, height, buffer) != 0 || width == 0 || height == 0) return img;
 
 	img.tex = new C3D_Tex;
 	img.subtex = new Tex3DS_SubTexture({(u16)width, (u16)height, 0.0f, 1.0f, width / 512.0f, 1.0f - (height / 512.0f)});

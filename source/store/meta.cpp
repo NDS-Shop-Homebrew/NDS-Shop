@@ -14,8 +14,6 @@
 *   
 *   If you have any suggestions or find any bugs, please let us know!
 *   
-*   NDS-Shop Team reserves the right to update the license terms
-*	at any time without prior notice.
 *   Any changes to the code must be clearly marked as such to avoid confusion.
 */
 
@@ -86,7 +84,7 @@ void Meta::ImportMetadata() {
 	for (int i = 0; i < (int)info.size(); i++) {
 		if (info[i].Title != "" && oldJson.contains(info[i].FileName)) {
 			for(auto it = oldJson[info[i].FileName].begin(); it != oldJson[info[i].FileName].end(); ++it) {
-				this->SetUpdated(info[i].Title, it.key().c_str(), it.value().get<std::string>());
+				if (it.value().is_string()) this->SetUpdated(info[i].Title, it.key().c_str(), it.value().get<std::string>());
 			}
 		}
 	}

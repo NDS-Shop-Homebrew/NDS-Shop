@@ -14,8 +14,6 @@
 *   
 *   If you have any suggestions or find any bugs, please let us know!
 *   
-*   NDS-Shop Team reserves the right to update the license terms
-*	at any time without prior notice.
 *   Any changes to the code must be clearly marked as such to avoid confusion.
 */
 
@@ -53,10 +51,10 @@ static void getCurrentUsage(){
 */
 static void InitMusic() {
 	if (access("sdmc:/3ds/dspfirm.cdc", F_OK) == 0) { // Ensure dspfirm dump exist.
-		if (access("sdmc:/3ds/Universal-Updater/NDS-Shop/music.wav", F_OK) == 0) { // Ensure music.wav exist.
+		if (access("sdmc:/3ds/NDS-Shop/music.wav", F_OK) == 0) { // Ensure music.wav exist.
 			dspfirmFound = true;
 			ndspInit();
-			Music = std::make_unique<Sound>("sdmc:/3ds/Universal-Updater/NDS-Shop/music.wav");
+			Music = std::make_unique<Sound>("sdmc:/3ds/NDS-Shop/music.wav");
 
 			Music->play();
 		}
@@ -91,8 +89,8 @@ bool touching(touchPosition touch, Structs::ButtonPos button) {
 void Init::LoadFont() {
 	if (config->customfont()) {
 		if (!needUnloadFont) {
-			if (access("sdmc:/3ds/Universal-Updater/font.bcfnt", F_OK) == 0) {
-				Gui::loadFont(font, "sdmc:/3ds/Universal-Updater/font.bcfnt");
+if (access("sdmc:/3ds/NDS-Shop/font.bcfnt", F_OK) == 0) {
+Gui::loadFont(font, "sdmc:/3ds/NDS-Shop/font.bcfnt");
 				needUnloadFont = true;
 			}
 		}
@@ -111,7 +109,7 @@ void Init::UnloadFont() {
 }
 
 /*
-	Initialize Universal-Updater.
+	Initialize NDS-Shop.
 */
 Result Init::Initialize() {
 	gfxInitDefault();
@@ -174,7 +172,7 @@ Result Init::Initialize() {
 }
 
 /*
-	MainLoop of Universal-Updater.
+	MainLoop of NDS-Shop.
 */
 Result Init::MainLoop() {
 	bool fullExit = false;
@@ -213,7 +211,7 @@ Result Init::MainLoop() {
 }
 
 /*
-	Exit Universal-Updater.
+	Exit NDS-Shop.
 */
 Result Init::Exit() {
 	Gui::exit();

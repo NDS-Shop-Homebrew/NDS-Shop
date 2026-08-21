@@ -14,8 +14,6 @@
 *   
 *   If you have any suggestions or find any bugs, please let us know!
 *   
-*   NDS-Shop Team reserves the right to update the license terms
-*	at any time without prior notice.
 *   Any changes to the code must be clearly marked as such to avoid confusion.
 */
 
@@ -38,11 +36,10 @@ void Overlays::ShowCredits() {
 		GFX::DrawSprite(sprites_nds_shop_idx, 220, 26);
 		Gui::DrawStringCentered(0, 1, 0.7f, UIThemes->TextColor(), "NDS-Shop - " + Lang::get("CREDITS"), 395, 0, font);
 
-		Gui::DrawString(10, 30, 0.5f, UIThemes->TextColor(), "- NDS-Shop Team :", 0, 0, font);
+		Gui::DrawString(10, 30, 0.5f, UIThemes->TextColor(), "- Team NDS-Shop-Homebrew :", 0, 0, font);
 		Gui::DrawString(10, 50, 0.5f, UIThemes->TextColor(), "  - Rinzler", 0, 0, font);
-		Gui::DrawString(10, 70, 0.5f, UIThemes->TextColor(), "  - CreeperTV", 0, 0, font);
-		Gui::DrawString(10, 90, 0.5f, UIThemes->TextColor(), "- BenjaminCM", 0, 0, font);
-		Gui::DrawString(10, 110, 0.5f, UIThemes->TextColor(), "- Ghost", 0, 0, font);
+		Gui::DrawString(10, 70, 0.5f, UIThemes->TextColor(), "  - LoannMKW", 0, 0, font);
+		Gui::DrawString(10, 110, 0.5f, UIThemes->TextColor(), "- Based on Universal-Updater (Universal-Team)", 0, 0, font);
 		Gui::DrawString(10, 197, 0.5f, UIThemes->TextColor(), Lang::get("GITHUB"), 390, 0, font);
 
 		Gui::Draw_Rect(0, 215, 400, 25, UIThemes->BarColor());

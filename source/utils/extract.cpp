@@ -14,8 +14,6 @@
 *   
 *   If you have any suggestions or find any bugs, please let us know!
 *   
-*   NDS-Shop Team reserves the right to update the license terms
-*	at any time without prior notice.
 *   Any changes to the code must be clearly marked as such to avoid confusion.
 */
 
@@ -76,15 +74,18 @@ Result extractArchive(const std::string &archivePath, const std::string &wantedF
 		std::smatch match;
 		std::string entryName(archive_entry_pathname(entry));
 		if (std::regex_search(entryName, match, std::regex(wantedFile))) {
-			extractingFile = outputPath + match.suffix().str();
+			const std::string suffix = match.suffix().str();
+			if (suffix.find("..") != std::string::npos) continue; // Reject path traversal from archives.
+			extractingFile = outputPath + suffix;
 			filesExtracted++;
 
 			/* Make directories. */
-			for (char *slashpos = strchr(extractingFile.c_str() + 1, '/'); slashpos != NULL; slashpos = strchr(slashpos + 1, '/')) {
+			std::string dirPath = extractingFile;
+			for (char *slashpos = strchr(dirPath.data() + 1, '/'); slashpos != NULL; slashpos = strchr(slashpos + 1, '/')) {
 				char bak = *(slashpos);
 				*(slashpos) = '\0';
 
-				mkdir(extractingFile.c_str(), 0777);
+				mkdir(dirPath.c_str(), 0777);
 
 				*(slashpos) = bak;
 			}

@@ -14,8 +14,6 @@
 *   
 *   If you have any suggestions or find any bugs, please let us know!
 *   
-*   NDS-Shop Team reserves the right to update the license terms
-*	at any time without prior notice.
 *   Any changes to the code must be clearly marked as such to avoid confusion.
 */
 
@@ -45,8 +43,9 @@
 
 #define USER_AGENT APP_TITLE "-" VER_NUMBER
 
-/* Write a line to sdmc:/nds-dl.log for remote debugging. */
+/* Write a line to sdmc:/nds-dl.log for remote debugging. Disabled in release builds. */
 static void dbgLog(const char *fmt, ...) {
+#ifdef NDS_SHOP_DEBUG_LOG
 	FILE *f = fopen("sdmc:/nds-dl.log", "a");
 	if (!f) return;
 	fprintf(f, "[DBG] ");
@@ -56,6 +55,9 @@ static void dbgLog(const char *fmt, ...) {
 	va_end(args);
 	fprintf(f, "\n");
 	fclose(f);
+#else
+	(void)fmt;
+#endif
 }
 
 static char *result_buf = nullptr;
@@ -217,11 +219,14 @@ Result downloadToFile(const std::string &url, const std::string &path) {
 	}
 
 	/* make directories. */
-	for (char *slashpos = strchr(path.c_str() + 1, '/'); slashpos != NULL; slashpos = strchr(slashpos + 1, '/')) {
+	char dirPath[512];
+	strncpy(dirPath, path.c_str(), sizeof(dirPath) - 1);
+	dirPath[sizeof(dirPath) - 1] = '\0';
+	for (char *slashpos = strchr(dirPath + 1, '/'); slashpos != NULL; slashpos = strchr(slashpos + 1, '/')) {
 		char bak = *(slashpos);
 		*(slashpos) = '\0';
 
-		mkdir(path.c_str(), 0777);
+		mkdir(dirPath, 0777);
 
 		*(slashpos) = bak;
 	}
@@ -872,7 +877,7 @@ static int compareVersions(const std::string &a, const std::string &b) {
 }
 
 /*
-	Checks for U-U updates.
+	Checks for NDS-Shop updates.
 */
 NDSShopUpdate IsNDSShopUpdateAvailable() {
 	if (!checkWifiStatus()) return { false, "", "" };
@@ -953,7 +958,7 @@ NDSShopUpdate IsNDSShopUpdateAvailable() {
 extern bool exiting;
 
 /*
-	Execute U-U update action.
+	Execute NDS-Shop update action.
 */
 void UpdateAction() {
 	dbgLog("SimpleUpdate: v1.0.2 build");

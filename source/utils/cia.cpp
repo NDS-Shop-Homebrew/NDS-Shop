@@ -14,8 +14,6 @@
 *   
 *   If you have any suggestions or find any bugs, please let us know!
 *   
-*   NDS-Shop Team reserves the right to update the license terms
-*	at any time without prior notice.
 *   Any changes to the code must be clearly marked as such to avoid confusion.
 */
 
@@ -25,8 +23,9 @@
 #include <cstdarg>
 #include <cstdio>
 
-/* Write a line to sdmc:/nds-dl.log for remote debugging. */
+/* Write a line to sdmc:/nds-dl.log for remote debugging. Disabled in release builds. */
 static void dbgLog(const char *fmt, ...) {
+#ifdef NDS_SHOP_DEBUG_LOG
 	FILE *f = fopen("sdmc:/nds-dl.log", "a");
 	if (!f) return;
 	fprintf(f, "[INSTALL] ");
@@ -36,6 +35,9 @@ static void dbgLog(const char *fmt, ...) {
 	va_end(args);
 	fprintf(f, "\n");
 	fclose(f);
+#else
+	(void)fmt;
+#endif
 }
 
 Result Title::Launch(u64 titleId, FS_MediaType mediaType) {
@@ -125,6 +127,7 @@ Result Title::Install(const char *ciaPath, bool updatingSelf) {
 	if (R_FAILED(ret)) {
 		dbgLog("AM_GetCiaFileInfo failed: %08lX", (unsigned long)ret);
 		printf("Error in:\nAM_GetCiaFileInfo\n");
+		FSFILE_Close(fileHandle);
 		return ret;
 	}
 	dbgLog("titleID: %016llX", (unsigned long long)info.titleID);
@@ -138,6 +141,7 @@ Result Title::Install(const char *ciaPath, bool updatingSelf) {
 		ret = Title::DeletePrevious(info.titleID, media);
 		if (R_FAILED(ret)) {
 			dbgLog("DeletePrevious failed: %08lX", (unsigned long)ret);
+			FSFILE_Close(fileHandle);
 			return ret;
 		}
 	}
@@ -172,12 +176,21 @@ Result Title::Install(const char *ciaPath, bool updatingSelf) {
 		dbgLog("installSize=%lu, starting write loop", (unsigned long)size);
 		installSize = size;
 		while(installOffset < installSize) {
-			FSFILE_Read(fileHandle, &bytes_read, installOffset, buf, toRead);
-			ret = FSFILE_Write(ciaHandle, &bytes_written, installOffset, buf, toRead, FS_WRITE_FLUSH);
+			ret = FSFILE_Read(fileHandle, &bytes_read, installOffset, buf, toRead);
+			if (R_FAILED(ret) || bytes_read == 0) {
+				dbgLog("FSFILE_Read failed/EOF: %08lX", (unsigned long)ret);
+				printf("Error in:\nFSFILE_Read\n");
+				delete[] buf;
+				AM_CancelCIAInstall(ciaHandle);
+				FSFILE_Close(fileHandle);
+				return R_FAILED(ret) ? ret : -1;
+			}
+			ret = FSFILE_Write(ciaHandle, &bytes_written, installOffset, buf, bytes_read, FS_WRITE_FLUSH);
 			if (R_FAILED(ret)) {
 				dbgLog("FSFILE_Write failed: %08lX", (unsigned long)ret);
 				printf("Error in:\nFSFILE_Write\n");
 				delete[] buf;
+				AM_CancelCIAInstall(ciaHandle);
 				FSFILE_Close(fileHandle);
 				return ret;
 			}
@@ -193,6 +206,11 @@ Result Title::Install(const char *ciaPath, bool updatingSelf) {
 			FSFILE_Close(fileHandle);
 			return ret;
 		}
+	} else {
+		dbgLog("not enough space: need %llu", (unsigned long long)size);
+		printf("Error: not enough free space on SD\n");
+		FSFILE_Close(fileHandle);
+		return -1;
 	}
 
 	ret = FSFILE_Close(fileHandle);

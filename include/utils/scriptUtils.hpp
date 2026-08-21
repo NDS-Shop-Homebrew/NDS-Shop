@@ -14,8 +14,6 @@
 *   
 *   If you have any suggestions or find any bugs, please let us know!
 *   
-*   NDS-Shop Team reserves the right to update the license terms
-*	at any time without prior notice.
 *   Any changes to the code must be clearly marked as such to avoid confusion.
 */
 
@@ -48,7 +46,7 @@ namespace ScriptUtils {
 	Result renameFile(const std::string &oldName, const std::string &newName, bool isARG = false);
 	Result downloadRelease(const std::string &repo, const std::string &file, const std::string &output, bool includePrereleases, const std::string &message, bool isARG = false);
 	Result downloadFile(const std::string &file, const std::string &output, const std::string &message, bool isARG = false);
-	void installFile(const std::string &file, bool updatingSelf, const std::string &message, bool isARG = false);
+	Result installFile(const std::string &file, bool updatingSelf, const std::string &message, bool isARG = false);
 	Result extractFile(const std::string &file, const std::string &input, const std::string &output, const std::string &message, bool isARG = false);
 
 	Result runFunctions(nlohmann::json storeJson, int selection, const std::string &entry);

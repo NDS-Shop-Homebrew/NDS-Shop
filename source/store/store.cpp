@@ -14,8 +14,6 @@
 *   
 *   If you have any suggestions or find any bugs, please let us know!
 *   
-*   NDS-Shop Team reserves the right to update the license terms
-*	at any time without prior notice.
 *   Any changes to the code must be clearly marked as such to avoid confusion.
 */
 
@@ -421,7 +419,7 @@ C2D_Image Store::GetIconEntry(int index) const {
 
 	if (iconIndex == -1) return C2D_SpriteSheetGetImage(sprites, sprites_noIcon_idx);
 
-	if (sheetIndex > (int)this->sheets.size()) return C2D_SpriteSheetGetImage(sprites, sprites_noIcon_idx);
+	if (sheetIndex < 0 || sheetIndex >= (int)this->sheets.size()) return C2D_SpriteSheetGetImage(sprites, sprites_noIcon_idx);
 	if (!this->sheets[sheetIndex]) return C2D_SpriteSheetGetImage(sprites, sprites_noIcon_idx);
 
 	if (iconIndex > (int)C2D_SpriteSheetCount(this->sheets[sheetIndex])-1) return C2D_SpriteSheetGetImage(sprites, sprites_noIcon_idx);
@@ -450,7 +448,7 @@ void Store::SetC2DBGImage() {
 
 	if (index == -1 || sheetIndex == -1) return;
 
-	if (sheetIndex > (int)this->sheets.size()) return;
+	if (sheetIndex < 0 || sheetIndex >= (int)this->sheets.size()) return;
 	if (!this->sheets[sheetIndex]) return;
 
 	if (index > (int)C2D_SpriteSheetCount(this->sheets[sheetIndex])-1) return;
@@ -550,7 +548,7 @@ std::vector<std::string> Store::GetScreenshotList(int index) const {
 	if (this->storeJson["storeContent"][index]["info"].contains("screenshots")) {
 		if (this->storeJson["storeContent"][index]["info"]["screenshots"].is_array()) {
 			for(auto &item : this->storeJson["storeContent"][index]["info"]["screenshots"]) {
-				if (item.is_object() && item.contains("url")) screenshots.push_back(item["url"]);
+				if (item.is_object() && item.contains("url") && item["url"].is_string()) screenshots.push_back(item["url"]);
 				else screenshots.push_back("");
 			}
 		}
@@ -574,7 +572,7 @@ std::vector<std::string> Store::GetScreenshotNames(int index) const {
 	if (this->storeJson["storeContent"][index]["info"].contains("screenshots")) {
 		if (this->storeJson["storeContent"][index]["info"]["screenshots"].is_array()) {
 			for(auto &item : this->storeJson["storeContent"][index]["info"]["screenshots"]) {
-				if (item.is_object() && item.contains("description")) screenshotNames.push_back(item["description"]);
+				if (item.is_object() && item.contains("description") && item["description"].is_string()) screenshotNames.push_back(item["description"]);
 				else screenshotNames.push_back("");
 			}
 		}

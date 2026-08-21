@@ -14,8 +14,6 @@
 *   
 *   If you have any suggestions or find any bugs, please let us know!
 *   
-*   NDS-Shop Team reserves the right to update the license terms
-*	at any time without prior notice.
 *   Any changes to the code must be clearly marked as such to avoid confusion.
 */
 
@@ -197,7 +195,7 @@ void Config::save() {
 
 /* Helper functions. */
 bool Config::getBool(const std::string &key) {
-	if (!this->json.contains(key)) return false;
+	if (!this->json.contains(key) || !this->json.at(key).is_boolean()) return false;
 
 	return this->json.at(key).get_ref<const bool &>();
 }
@@ -206,7 +204,7 @@ void Config::setBool(const std::string &key, bool v) {
 };
 
 int Config::getInt(const std::string &key) {
-	if (!this->json.contains(key)) return 0;
+	if (!this->json.contains(key) || !this->json.at(key).is_number_integer()) return 0;
 
 	return this->json.at(key).get_ref<const int64_t &>();
 }
@@ -215,7 +213,7 @@ void Config::setInt(const std::string &key, int v) {
 };
 
 std::string Config::getString(const std::string &key) {
-	if (!this->json.contains(key)) return "";
+	if (!this->json.contains(key) || !this->json.at(key).is_string()) return "";
 
 	return this->json.at(key).get_ref<const std::string &>();
 }

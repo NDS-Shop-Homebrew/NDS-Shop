@@ -14,8 +14,6 @@
 *   
 *   If you have any suggestions or find any bugs, please let us know!
 *   
-*   NDS-Shop Team reserves the right to update the license terms
-*	at any time without prior notice.
 *   Any changes to the code must be clearly marked as such to avoid confusion.
 */
 
@@ -63,6 +61,8 @@ public:
 	void drawThread();
 	void captureThread();
 	void handler(std::string &result);
+	void shutdown();
+	void startDrawThread();
 	bool done() const { return this->finished; };
 	bool cancelled() const { return this->cancel; };
 	void List(bool v) { this->displayList = v; };
@@ -75,6 +75,8 @@ private:
 	LightLock imageLock;
 	quirc *qrData;
 	Handle exitEvent;
+	Thread captureThreadH = nullptr;
+	Thread drawThreadH = nullptr;
 	static constexpr Tex3DS_SubTexture subtex = { 512, 256, 0.0f, 1.0f, 1.0f, 0.0f };
 	std::atomic<bool> finished                = false;
 	bool capturing                            = false;

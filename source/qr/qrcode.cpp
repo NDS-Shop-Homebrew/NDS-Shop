@@ -14,8 +14,6 @@
 *   
 *   If you have any suggestions or find any bugs, please let us know!
 *   
-*   NDS-Shop Team reserves the right to update the license terms
-*	at any time without prior notice.
 *   Any changes to the code must be clearly marked as such to avoid confusion.
 */
 
@@ -126,6 +124,26 @@ void QRCode::finish() {
 	LightLock_Unlock(&this->bufferLock);
 	LightLock_Lock(&this->imageLock);
 	LightLock_Unlock(&this->imageLock);
+}
+
+/*
+	Signal both threads to exit and join them, so nothing touches this object after destruction.
+*/
+void QRCode::shutdown() {
+	this->finished = true;
+	svcSignalEvent(this->exitEvent);
+
+	if (this->captureThreadH) {
+		threadJoin(this->captureThreadH, U64_MAX);
+		threadFree(this->captureThreadH);
+		this->captureThreadH = nullptr;
+	}
+
+	if (this->drawThreadH) {
+		threadJoin(this->drawThreadH, U64_MAX);
+		threadFree(this->drawThreadH);
+		this->drawThreadH = nullptr;
+	}
 }
 
 /*
@@ -275,6 +293,10 @@ void captureHelper(void *arg) {
 	qrData->captureThread();
 }
 
+void QRCode::startDrawThread() {
+	this->drawThreadH = threadCreate((ThreadFunc)&drawHelper, this, 0x10000, 0x1A, 1, true);
+}
+
 /*
 	Handle the capture.
 */
@@ -356,7 +378,8 @@ void QRCode::handler(std::string &result) {
 
 		if (!this->capturing) {
 			/* create camera capture thread. */
-			if (threadCreate((ThreadFunc)&captureHelper, this, 0x10000, 0x1A, 1, true) != NULL) this->capturing = true;
+			this->captureThreadH = threadCreate((ThreadFunc)&captureHelper, this, 0x10000, 0x1A, 1, true);
+			if (this->captureThreadH != NULL) this->capturing = true;
 			else {
 				this->finish();
 				return;
@@ -393,7 +416,7 @@ void QRCode::handler(std::string &result) {
 				if (this->out.empty()) result = "";
 
 				/* If Terminator, do -1. */
-				if (this->out.back() == '\0') result = std::string((char *)this->out.data(), this->out.size() - 1);
+				else if (this->out.back() == '\0') result = std::string((char *)this->out.data(), this->out.size() - 1);
 				else result = std::string((char *)this->out.data(), this->out.size());
 			}
 		}
@@ -411,9 +434,10 @@ std::string QR_Scanner::StoreHandle() {
 
 	std::unique_ptr<QRCode> qrData = std::make_unique<QRCode>();
 	aptSetHomeAllowed(false); // Block the Home key.
-	threadCreate((ThreadFunc)&drawHelper, qrData.get(), 0x10000, 0x1A, 1, true);
+	qrData->startDrawThread();
     while (!qrData->done()) qrData->handler(result); // Handle.
     aptSetHomeAllowed(true); // Re-Allow it.
+	qrData->shutdown(); // Join threads before destruction.
 
 	return result;
 }

@@ -14,8 +14,6 @@
 *   
 *   If you have any suggestions or find any bugs, please let us know!
 *   
-*   NDS-Shop Team reserves the right to update the license terms
-*	at any time without prior notice.
 *   Any changes to the code must be clearly marked as such to avoid confusion.
 */
 
@@ -39,12 +37,11 @@ static void InitForARG() {
 
 	/* Create Directories, if missing. */
 	mkdir("sdmc:/3ds", 0777);
-	mkdir("sdmc:/3ds/Universal-Updater", 0777);
-	mkdir("sdmc:/3ds/Universal-Updater/stores", 0777);
-	mkdir("sdmc:/3ds/Universal-Updater/shortcuts", 0777);
-	mkdir("sdmc:/3ds/Universal-Updater/NDS-Shop", 0777);
-	mkdir("sdmc:/3ds/Universal-Updater/NDS-Shop/config", 0777);
-	mkdir("sdmc:/3ds/Universal-Updater/NDS-Shop/themes", 0777);
+	mkdir("sdmc:/3ds/NDS-Shop", 0777);
+	mkdir("sdmc:/3ds/NDS-Shop/stores", 0777);
+	mkdir("sdmc:/3ds/NDS-Shop/shortcuts", 0777);
+	mkdir("sdmc:/3ds/NDS-Shop/config", 0777);
+	mkdir("sdmc:/3ds/NDS-Shop/themes", 0777);
 
 	config = std::make_unique<Config>();
 	UIThemes = std::make_unique<Theme>();
