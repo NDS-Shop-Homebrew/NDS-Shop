@@ -293,6 +293,10 @@ void captureHelper(void *arg) {
 	qrData->captureThread();
 }
 
+void QRCode::startDrawThread() {
+	this->drawThreadH = threadCreate((ThreadFunc)&drawHelper, this, 0x10000, 0x1A, 1, true);
+}
+
 /*
 	Handle the capture.
 */
@@ -430,7 +434,7 @@ std::string QR_Scanner::StoreHandle() {
 
 	std::unique_ptr<QRCode> qrData = std::make_unique<QRCode>();
 	aptSetHomeAllowed(false); // Block the Home key.
-	qrData->drawThreadH = threadCreate((ThreadFunc)&drawHelper, qrData.get(), 0x10000, 0x1A, 1, true);
+	qrData->startDrawThread();
     while (!qrData->done()) qrData->handler(result); // Handle.
     aptSetHomeAllowed(true); // Re-Allow it.
 	qrData->shutdown(); // Join threads before destruction.

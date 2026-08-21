@@ -219,12 +219,14 @@ Result downloadToFile(const std::string &url, const std::string &path) {
 	}
 
 	/* make directories. */
-	std::string dirPath = path;
-	for (char *slashpos = strchr(dirPath.data() + 1, '/'); slashpos != NULL; slashpos = strchr(slashpos + 1, '/')) {
+	char dirPath[512];
+	strncpy(dirPath, path.c_str(), sizeof(dirPath) - 1);
+	dirPath[sizeof(dirPath) - 1] = '\0';
+	for (char *slashpos = strchr(dirPath + 1, '/'); slashpos != NULL; slashpos = strchr(slashpos + 1, '/')) {
 		char bak = *(slashpos);
 		*(slashpos) = '\0';
 
-		mkdir(dirPath.c_str(), 0777);
+		mkdir(dirPath, 0777);
 
 		*(slashpos) = bak;
 	}

@@ -62,6 +62,7 @@ public:
 	void captureThread();
 	void handler(std::string &result);
 	void shutdown();
+	void startDrawThread();
 	bool done() const { return this->finished; };
 	bool cancelled() const { return this->cancel; };
 	void List(bool v) { this->displayList = v; };

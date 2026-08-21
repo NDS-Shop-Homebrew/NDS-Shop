@@ -181,7 +181,7 @@ Result Title::Install(const char *ciaPath, bool updatingSelf) {
 				dbgLog("FSFILE_Read failed/EOF: %08lX", (unsigned long)ret);
 				printf("Error in:\nFSFILE_Read\n");
 				delete[] buf;
-				AM_CancelCiaInstall(ciaHandle);
+				AM_CancelCIAInstall(ciaHandle);
 				FSFILE_Close(fileHandle);
 				return R_FAILED(ret) ? ret : -1;
 			}
@@ -190,7 +190,7 @@ Result Title::Install(const char *ciaPath, bool updatingSelf) {
 				dbgLog("FSFILE_Write failed: %08lX", (unsigned long)ret);
 				printf("Error in:\nFSFILE_Write\n");
 				delete[] buf;
-				AM_CancelCiaInstall(ciaHandle);
+				AM_CancelCIAInstall(ciaHandle);
 				FSFILE_Close(fileHandle);
 				return ret;
 			}
