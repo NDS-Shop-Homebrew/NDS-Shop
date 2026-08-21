@@ -157,9 +157,6 @@ Result Init::Initialize() {
 
 	osSetSpeedupEnable(true); // Enable speed-up for New 3DS users.
 
-	/* Check here for updates. */
-	if (config->updatecheck()) UpdateAction();
-
 	if (exiting) return -1; // In case the update was successful.
 
 	Gui::setScreen(std::make_unique<MainScreen>(), false, false);
