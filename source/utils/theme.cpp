@@ -18,7 +18,6 @@
 */
 
 #include "theme.hpp"
-#include <regex>
 #include <unistd.h>
 
 /**
@@ -120,13 +119,20 @@ std::vector<std::pair<std::string, std::string>> Theme::ThemeNames() {
 uint32_t Theme::GetThemeColor(const std::string &ThemeName, const std::string &Key, const uint32_t DefaultColor) {
 	if(this->json.contains(ThemeName) && this->json[ThemeName].is_object() && this->json[ThemeName].contains(Key) && this->json[ThemeName][Key].is_string()) {
 		const std::string &colorString = this->json[ThemeName][Key].get_ref<const std::string &>();
-		if (colorString.length() < 7 || std::regex_search(colorString.substr(1), std::regex("[^0-9A-Fa-f]"))) { // invalid color.
-			return DefaultColor;
-		}
+		if (colorString.length() < 7) return DefaultColor; // invalid color.
 
-		int r = std::stoi(colorString.substr(1, 2), nullptr, 16);
-		int g = std::stoi(colorString.substr(3, 2), nullptr, 16);
-		int b = std::stoi(colorString.substr(5, 2), nullptr, 16);
+		int r = 0, g = 0, b = 0;
+		const char *s = colorString.c_str() + 1;
+		for (int i = 0; i < 6; i++) {
+			const char c = s[i];
+			const int v = (c >= '0' && c <= '9') ? c - '0'
+				: (c >= 'A' && c <= 'F') ? c - 'A' + 10
+				: (c >= 'a' && c <= 'f') ? c - 'a' + 10 : -1;
+			if (v < 0) return DefaultColor; // invalid color.
+			if (i < 2) r = r * 16 + v;
+			else if (i < 4) g = g * 16 + v;
+			else b = b * 16 + v;
+		}
 		return RGBA8(r, g, b, 0xFF);
 
 	}
