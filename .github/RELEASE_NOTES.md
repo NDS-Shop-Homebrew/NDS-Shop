@@ -10,6 +10,8 @@
 
 ## Corrections
 
+- **Crash au démarrage sur console réelle corrigé** : la vérification de mise à jour au lancement est désactivée pour l'instant (le parsing de la réponse GitHub dépassait la pile de la console).
+- **Chargement des thèmes** : validation des couleurs réécrite sans regex (stabilité accrue au boot).
 - **Installation CIA fiabilisée** : correction d'un bug qui écrivait trop de données en fin de fichier (CIA corrompus / installs qui échouaient).
 - **Espace SD insuffisant** : l'installation affiche maintenant une erreur au lieu d'un faux succès.
 - **File de téléchargement** : une installation échouée est signalée comme telle (au lieu d'être marquée « terminée »).
@@ -23,7 +25,7 @@
 - Chemins restants déplacés de `3ds/Universal-Updater/` vers `3ds/NDS-Shop/` (configuration, musique, police).
 - Journal de debug désactivé dans la version publique.
 - Nettoyage des branches obsolètes et chaînes de traduction inutilisées.
-- Stabilité au boot (changelog auto désactivé).
+- Stabilité au boot (changelog auto et vérification de mise à jour désactivés).
 
 ## Crédits
 
