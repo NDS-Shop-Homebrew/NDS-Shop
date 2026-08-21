@@ -97,7 +97,7 @@ INCLUDES	:=	$(UNIVCORE) include include/download include/gui include/lang includ
 GRAPHICS	:=	assets/gfx
 ROMFS		:=	romfs
 GFXBUILD	:=	$(ROMFS)/gfx
-APP_AUTHOR	:=	Rinzler
+APP_AUTHOR	:=	NDS-Shop-Homebrew
 APP_DESCRIPTION :=	An Alternative Nintendo DS Shop for Nintendo 3DS family of systems
 ICON		:=	app/icon.png
 BNR_IMAGE	:=	app/banner.png
@@ -266,7 +266,8 @@ all: $(OUTPUT).cia $(OUTPUT).elf $(OUTPUT).3dsx
 $(OUTPUT).elf	:	$(OFILES)
 
 $(OUTPUT).cia	:	$(OUTPUT).elf $(OUTPUT).smdh
-	@$(BANNERTOOL) makebanner -i "../app/banner.png" -a "../app/BannerAudio.wav" -o "../app/banner.bin"
+	@$(BANNERTOOL) makebanner -ci "../app/banner.cgfx" -a "../app/BannerAudio.wav" -o "../app/banner.bin"
+# 	@$(BANNERTOOL) makebanner -i "../app/banner.png" -a "../app/BannerAudio.wav" -o "../app/banner.bin"
 
 	@$(BANNERTOOL) makesmdh -i "../app/icon.png" -s "$(TARGET)" -l "$(APP_DESCRIPTION)" -p "$(APP_AUTHOR)" -o "../app/icon.bin" \
 		--flags visible,ratingrequired,recordusage --cero 153 --esrb 153 --usk 153 --pegigen 153 --pegiptr 153 --pegibbfc 153 --cob 153 --grb 153 --cgsrr 153

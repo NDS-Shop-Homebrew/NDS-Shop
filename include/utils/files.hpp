@@ -14,8 +14,6 @@
 *   
 *   If you have any suggestions or find any bugs, please let us know!
 *   
-*   NDS-Shop Team reserves the right to update the license terms
-*	at any time without prior notice.
 *   Any changes to the code must be clearly marked as such to avoid confusion.
 */
 
@@ -24,7 +22,7 @@
 
 #include "common.hpp"
 
-Result makeDirs(const char *path);
+Result makeDirs(std::string path);
 Result openFile(Handle *fileHandle, const char *path, bool write);
 Result deleteFile(const char *path);
 Result removeDir(const char *path);

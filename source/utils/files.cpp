@@ -14,8 +14,6 @@
 *   
 *   If you have any suggestions or find any bugs, please let us know!
 *   
-*   NDS-Shop Team reserves the right to update the license terms
-*	at any time without prior notice.
 *   Any changes to the code must be clearly marked as such to avoid confusion.
 */
 
@@ -48,15 +46,15 @@ FS_Path getPathInfo(const char *path, FS_ArchiveID *archive) {
 	return filePath;
 }
 
-Result makeDirs(const char *path) {
+Result makeDirs(std::string path) {
 	Result ret = 0;
 	FS_ArchiveID archiveID;
-	FS_Path filePath = getPathInfo(path, &archiveID);
+	FS_Path filePath = getPathInfo(path.c_str(), &archiveID);
 	FS_Archive archive;
 
 	ret = FSUSER_OpenArchive(&archive, archiveID, fsMakePath(PATH_EMPTY, ""));
 
-	for (char *slashpos = strchr(path + 1, '/'); slashpos != NULL; slashpos = strchr(slashpos + 1, '/')) {
+	for (char *slashpos = strchr(path.data() + 1, '/'); slashpos != NULL; slashpos = strchr(slashpos + 1, '/')) {
 		char bak = *(slashpos);
 		*(slashpos) = '\0';
 		Handle dirHandle;
@@ -79,7 +77,7 @@ Result openFile(Handle *fileHandle, const char *path, bool write) {
 	u32 flags = (write ? (FS_OPEN_CREATE | FS_OPEN_WRITE) : FS_OPEN_READ);
 
 	Result ret = 0;
-	ret = makeDirs(strdup(path));
+	ret = makeDirs(path);
 	ret = FSUSER_OpenFileDirectly(fileHandle, archive, fsMakePath(PATH_EMPTY, ""), filePath, flags, 0);
 	if (write)	ret = FSFILE_SetSize(*fileHandle, 0); // truncate the file to remove previous contents before writing.
 

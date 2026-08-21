@@ -14,8 +14,6 @@
 *   
 *   If you have any suggestions or find any bugs, please let us know!
 *   
-*   NDS-Shop Team reserves the right to update the license terms
-*	at any time without prior notice.
 *   Any changes to the code must be clearly marked as such to avoid confusion.
 */
 
@@ -248,7 +246,7 @@ Result ScriptUtils::downloadFile(const std::string &file, const std::string &out
 }
 
 /* Install CIA files. */
-void ScriptUtils::installFile(const std::string &file, bool updatingSelf, const std::string &message, bool isARG) {
+Result ScriptUtils::installFile(const std::string &file, bool updatingSelf, const std::string &message, bool isARG) {
 	std::string in;
 	in = std::regex_replace(file, std::regex("%ARCHIVE_DEFAULT%"), config->archPath());
 	in = std::regex_replace(in, std::regex("%3DSX%/(.*)\\.(.*)"), config->_3dsxPath() + (config->_3dsxInFolder() ? "/$1/$1.$2" : "/$1.$2"));
@@ -266,13 +264,15 @@ void ScriptUtils::installFile(const std::string &file, bool updatingSelf, const 
 		thread = threadCreate((ThreadFunc)Animation::displayProgressBar, NULL, 64 * 1024, prio - 1, -2, false);
 	}
 
-	Title::Install(in.c_str(), updatingSelf);
+	Result ret = Title::Install(in.c_str(), updatingSelf);
 
 	if (isARG) {
 		showProgressBar = false;
 		threadJoin(thread, U64_MAX);
 		threadFree(thread);
 	}
+
+	return ret;
 }
 
 /* Extract files. */
@@ -501,7 +501,10 @@ Result ScriptUtils::runFunctions(nlohmann::json storeJson, int selection, const 
 				char message[256];
 				snprintf(message, sizeof(message), Lang::get("SHORTCUT_INSTALLING").c_str(), file.substr(file.find_first_of("/") + 1).c_str());
 
-				if (!missing) ScriptUtils::installFile(file, updateSelf, message, true);
+				if (!missing) {
+					Result installRes = ScriptUtils::installFile(file, updateSelf, message, true);
+					if (installRes != NONE) ret = installRes;
+				}
 				else ret = SYNTAX_ERROR;
 
 			} else if (type == "mkdir") {

@@ -14,8 +14,6 @@
 *   
 *   If you have any suggestions or find any bugs, please let us know!
 *   
-*   NDS-Shop Team reserves the right to update the license terms
-*	at any time without prior notice.
 *   Any changes to the code must be clearly marked as such to avoid confusion.
 */
 
@@ -205,7 +203,10 @@ void QueueSystem::QueueHandle() {
 					updateSelf = queueEntries[0]->obj[i]["updateSelf"];
 				}
 
-				if (!missing) ScriptUtils::installFile(file, updateSelf, "");
+				if (!missing) {
+					Result installRes = ScriptUtils::installFile(file, updateSelf, "");
+					if (installRes != NONE) ret = installRes;
+				}
 				else ret = SYNTAX_ERROR;
 
 			} else if (type == "mkdir") {
