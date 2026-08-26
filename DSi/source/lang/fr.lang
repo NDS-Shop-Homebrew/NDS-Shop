@@ -20,13 +20,13 @@ msgid "Browse all"
 msgstr "Tout parcourir"
 
 msgid "No database loaded or initialized"
-msgstr "Aucune base de donnÃ©es chargÃ©e ou initialisÃ©e"
+msgstr "Aucune base de données chargée ou initialisée"
 
 msgid "Page"
 msgstr "Page"
 
 msgid "Previous"
-msgstr "PrÃ©cÃ©dent"
+msgstr "Précédent"
 
 msgid "Next"
 msgstr "Suivant"
@@ -35,7 +35,7 @@ msgid "Platform"
 msgstr "Plateforme"
 
 msgid "Region"
-msgstr "RÃ©gion"
+msgstr "Région"
 
 msgid "Author"
 msgstr "Auteur"
@@ -44,7 +44,7 @@ msgid "Version"
 msgstr "Version"
 
 msgid "Download"
-msgstr "TÃ©lÃ©charger"
+msgstr "Télécharger"
 
 msgid "Error"
 msgstr "Erreur"
@@ -56,31 +56,31 @@ msgid "Prompt"
 msgstr "Question"
 
 msgid "Download failed"
-msgstr "Ã‰chec du tÃ©lÃ©chargement"
+msgstr "Échec du téléchargement"
 
 msgid "could not create download directory"
-msgstr "Impossible de crÃ©er le dossier de tÃ©lÃ©chargement"
+msgstr "Impossible de créer le dossier de téléchargement"
 
 msgid "bad response status"
-msgstr "Mauvais Ã©tat de rÃ©ponse"
+msgstr "Mauvais état de réponse"
 
 msgid "could not initialize download"
-msgstr "Impossible d'initialiser le tÃ©lÃ©chargement"
+msgstr "Impossible d'initialiser le téléchargement"
 
 msgid "could not create file"
-msgstr "Impossible de crÃ©er le fichier"
+msgstr "Impossible de créer le fichier"
 
 msgid "could not perform download"
-msgstr "Impossible d'effectuer le tÃ©lÃ©chargement"
+msgstr "Impossible d'effectuer le téléchargement"
 
 msgid "Download completed"
-msgstr "TÃ©lÃ©chargement terminÃ©"
+msgstr "Téléchargement terminé"
 
 msgid "Extracting content..."
 msgstr "Extraction du contenu..."
 
 msgid "Extraction failed"
-msgstr "Ã‰chec de l'extraction"
+msgstr "Échec de l'extraction"
 
 msgid "could not open file"
 msgstr "Impossible d'ouvrir le fichier"
@@ -92,22 +92,22 @@ msgid "could not read file"
 msgstr "Impossible de lire le fichier"
 
 msgid "could not write file"
-msgstr "Impossible d'Ã©crire le fichier"
+msgstr "Impossible d'écrire le fichier"
 
 msgid "Do you wish to extract the content in a separate directory?"
-msgstr "Voulez-vous extraire le contenu dans un dossier sÃ©parÃ© ?"
+msgstr "Voulez-vous extraire le contenu dans un dossier séparé ?"
 
 msgid "Failed to initialize database"
-msgstr "Ã‰chec de l'initialisation de la base de donnÃ©es"
+msgstr "Échec de l'initialisation de la base de données"
 
 msgid "download failed"
-msgstr "Ã©chec du tÃ©lÃ©chargement"
+msgstr "échec du téléchargement"
 
 msgid "file not found"
-msgstr "fichier non trouvÃ©"
+msgstr "fichier non trouvé"
 
 msgid "Database open failed"
-msgstr "Ã‰chec de l'ouverture de la base de donnÃ©es"
+msgstr "Échec de l'ouverture de la base de données"
 
 msgid "invalid version"
 msgstr "version invalide"
@@ -116,46 +116,46 @@ msgid "invalid format"
 msgstr "format invalide"
 
 msgid "Database loaded successfully"
-msgstr "Base de donnÃ©es chargÃ©e avec succÃ¨s"
+msgstr "Base de données chargée avec succès"
 
 msgid "entries"
-msgstr "entrÃ©es"
+msgstr "entrées"
 
 msgid "Databases"
-msgstr "Bases de donnÃ©es"
+msgstr "Bases de données"
 
 msgid "No databases found"
-msgstr "Aucune base de donnÃ©es trouvÃ©e"
+msgstr "Aucune base de données trouvée"
 
 msgid "Loading database..."
-msgstr "Chargement de la base de donnÃ©es..."
+msgstr "Chargement de la base de données..."
 
 msgid "Settings"
-msgstr "ParamÃ¨tres"
+msgstr "Paramètres"
 
 msgid "Downloads directory"
-msgstr "Dossier de tÃ©lÃ©chargements"
+msgstr "Dossier de téléchargements"
 
 msgid "Use platform-specific directories (E.g. nds, gba)"
-msgstr "Utiliser des dossiers spÃ©cifiques Ã  la plateforme (ex: nds, gba)"
+msgstr "Utiliser des dossiers spécifiques à la plateforme (ex: nds, gba)"
 
 msgid "Color scheme"
-msgstr "SchÃ©ma de couleurs"
+msgstr "Schéma de couleurs"
 
 msgid "Check for updates on start"
-msgstr "VÃ©rifier les mises Ã  jour au dÃ©marrage"
+msgstr "Vérifier les mises à jour au démarrage"
 
 msgid "Language"
 msgstr "Langue"
 
 msgid "Path can not be empty"
-msgstr "Le chemin ne peut pas Ãªtre vide"
+msgstr "Le chemin ne peut pas être vide"
 
 msgid "Directory does not exist. Do you want to create it?"
-msgstr "Le dossier n'existe pas. Voulez-vous le crÃ©er ?"
+msgstr "Le dossier n'existe pas. Voulez-vous le créer ?"
 
 msgid "Failed to create directory"
-msgstr "Ã‰chec de la crÃ©ation du dossier"
+msgstr "Échec de la création du dossier"
 
 msgid "English"
 msgstr "Anglais"
@@ -164,34 +164,34 @@ msgid "Italian"
 msgstr "Italien"
 
 msgid "Dutch"
-msgstr "NÃ©erlandais"
+msgstr "Néerlandais"
 
 msgid "French"
-msgstr "FranÃ§ais"
+msgstr "Français"
 
 msgid "Check for updates"
-msgstr "VÃ©rifier les mises Ã  jour"
+msgstr "Vérifier les mises à jour"
 
 msgid "Could not download update"
-msgstr "Impossible de tÃ©lÃ©charger la mise Ã  jour"
+msgstr "Impossible de télécharger la mise à jour"
 
 msgid "Extracting update files..."
-msgstr "Extraction des fichiers de mise Ã  jour..."
+msgstr "Extraction des fichiers de mise à jour..."
 
 msgid "Could not extract update files"
-msgstr "Impossible d'extraire les fichiers de mise Ã  jour"
+msgstr "Impossible d'extraire les fichiers de mise à jour"
 
 msgid "Update downloaded successfully. Do you want to reboot now?"
-msgstr "Mise Ã  jour tÃ©lÃ©chargÃ©e avec succÃ¨s. Voulez-vous redÃ©marrer maintenant ?"
+msgstr "Mise à jour téléchargée avec succès. Voulez-vous redémarrer maintenant ?"
 
 msgid "Checking for updates..."
-msgstr "VÃ©rification des mises Ã  jour..."
+msgstr "Vérification des mises à jour..."
 
 msgid "New version found"
-msgstr "Nouvelle version trouvÃ©e"
+msgstr "Nouvelle version trouvée"
 
 msgid "Update"
-msgstr "Mettre Ã  jour"
+msgstr "Mettre à jour"
 
 msgid "Ignore"
 msgstr "Ignorer"
