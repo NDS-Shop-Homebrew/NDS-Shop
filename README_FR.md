@@ -62,7 +62,7 @@ cd NDS-Shop
 python build.py
 ```
 
-Utilisez `python3 build.py release` pour output dans `DSi/release/`.
+Utilisez `python build.py release` pour output dans `DSi/release/`.
 Ou utilisez `compile-dsi.bat` / `clean-dsi.bat` sous Windows.
 
 ### 3DS
