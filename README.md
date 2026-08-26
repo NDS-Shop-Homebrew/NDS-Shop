@@ -29,7 +29,7 @@
 - An SD card with at least 500 MB for game installation
 
 #### Latest release
-- [v1.0.0](https://github.com/NDS-Shop-Homebrew/NDS-Shop/releases/latest) — grab the `.cia` or `.3dsx` asset
+- [latest release](https://github.com/NDS-Shop-Homebrew/NDS-Shop/releases/latest) — grab the `.cia` or `.3dsx` asset
 
 ## Building
 
@@ -39,9 +39,19 @@ Requires [Wonderful Toolchain](https://wonderful.asie.pl/) + BlocksDS.
 
 #### Install requirements
 
-From the BlocksDS pacman repository:
-```
-wf-pacman -S blocksds-core toolchain-gcc-arm-none-eabi-zlib toolchain-gcc-arm-none-eabi-libpng16 blocksds-mbedtls blocksds-libcurl
+Follow the official BlocksDS [Windows setup guide](https://blocksds.skylyrac.net/docs/setup/windows/):
+
+```bash
+# Add BlocksDS repository
+wf-pacman -Syu wf-tools
+wf-config repo enable blocksds
+wf-pacman -Syu
+
+# Install ARM toolchain and BlocksDS
+wf-pacman -S blocksds-toolchain
+
+# Optional: docs and examples
+wf-pacman -S blocksds-docs
 ```
 
 #### Build
@@ -49,7 +59,7 @@ wf-pacman -S blocksds-core toolchain-gcc-arm-none-eabi-zlib toolchain-gcc-arm-no
 ```bash
 git clone --recursive https://github.com/NDS-Shop-Homebrew/NDS-Shop.git
 cd NDS-Shop
-python3 build.py
+python build.py
 ```
 
 Use `python3 build.py release` to output into `DSi/release/`.

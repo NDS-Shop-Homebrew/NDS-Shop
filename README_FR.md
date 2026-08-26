@@ -39,9 +39,19 @@ Nécessite [Wonderful Toolchain](https://wonderful.asie.pl/) + BlocksDS.
 
 #### Installer les dépendances
 
-Depuis le dépôt pacman BlocksDS :
-```
-wf-pacman -S blocksds-core toolchain-gcc-arm-none-eabi-zlib toolchain-gcc-arm-none-eabi-libpng16 blocksds-mbedtls blocksds-libcurl
+Suivez le [guide officiel BlocksDS Windows](https://blocksds.skylyrac.net/docs/setup/windows/) :
+
+```bash
+# Ajouter le dépôt BlocksDS
+wf-pacman -Syu wf-tools
+wf-config repo enable blocksds
+wf-pacman -Syu
+
+# Installer la toolchain ARM et BlocksDS
+wf-pacman -S blocksds-toolchain
+
+# Optionnel : docs et exemples
+wf-pacman -S blocksds-docs
 ```
 
 #### Compilation
@@ -49,7 +59,7 @@ wf-pacman -S blocksds-core toolchain-gcc-arm-none-eabi-zlib toolchain-gcc-arm-no
 ```bash
 git clone --recursive https://github.com/NDS-Shop-Homebrew/NDS-Shop.git
 cd NDS-Shop
-python3 build.py
+python build.py
 ```
 
 Utilisez `python3 build.py release` pour output dans `DSi/release/`.
