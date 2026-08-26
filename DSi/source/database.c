@@ -4,8 +4,10 @@
 #include "networking.h"
 #include "utils/filesystem.h"
 #include "utils/strings.h"
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/syslimits.h>
 
 #define TEMP_DB_FILENAME "db.txt"
 #define TEMP_DB_PATH CACHE_DIR "/" TEMP_DB_FILENAME
@@ -353,11 +355,29 @@ Database* getDatabaseList(size_t* databasesCount)
 
     FILE* fp = fopen(DATABASE_LIST_PATH, "r");
     if (!fp) {
-        // The user could have set the file name wrong (due to hiding extensions from file explorer) so use the alternative name
         fp = fopen(DATABASE_LIST_PATH_ALT, "r");
-        if (!fp)
-            return NULL;
+        if (!fp) {
+            char altPath[PATH_MAX];
+            snprintf(altPath, sizeof(altPath), "fat:/%s", DATABASE_LIST_FILENAME);
+            fp = fopen(altPath, "r");
+            if (!fp) {
+                snprintf(altPath, sizeof(altPath), "sd:/%s", DATABASE_LIST_FILENAME);
+                fp = fopen(altPath, "r");
+            }
+        }
     }
+
+    if (!fp) {
+        fp = fopen(DATABASE_LIST_PATH, "w");
+        if (fp) {
+            fprintf(fp, "NDS-Shop\thttps://db-nds-shop.fr/db.txt\n");
+            fclose(fp);
+            fp = fopen(DATABASE_LIST_PATH, "r");
+        }
+    }
+
+    if (!fp)
+        return NULL;
 
     size_t count = 0;
     size_t capacity = 8;
