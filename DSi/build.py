@@ -29,7 +29,7 @@ nds = NdsRom(
     binaries=[arm9],
     game_title='NDS-Shop',
     game_subtitle='Alternative DS/DSi shop',
-    game_author='Cavv',
+    game_author='Rinzler',
     game_icon='icon.png'
 )
 nds.generate_nds()

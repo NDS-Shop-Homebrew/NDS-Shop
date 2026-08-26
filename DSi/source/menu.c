@@ -1791,7 +1791,7 @@ static void infoMenu(void)
     setGuiTextPos(appVersionTxt, 128, 43);
     setGuiTextAlignment(appVersionTxt, GUI_TEXT_H_ALIGN_CENTER, GUI_TEXT_V_ALIGN_MIDDLE);
 
-    GuiText subtitle1Txt = newGuiText("by Cavv", GUI_TEXT_SIZE_SMALL, col(COLOR_TEXT_2));
+    GuiText subtitle1Txt = newGuiText("by Rinzler", GUI_TEXT_SIZE_SMALL, col(COLOR_TEXT_2));
     setGuiTextPos(subtitle1Txt, 128, 72);
     setGuiTextAlignment(subtitle1Txt, GUI_TEXT_H_ALIGN_CENTER, GUI_TEXT_V_ALIGN_MIDDLE);
 
