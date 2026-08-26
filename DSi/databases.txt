@@ -1,1 +1,0 @@
-NDS-Shop	https://db-nds-shop.fr/db.txt

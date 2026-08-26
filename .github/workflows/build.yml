@@ -1,4 +1,4 @@
-name: Build NDS-Shop
+name: Build NDS-Shop (3DS)
 
 on:
   push:
@@ -12,7 +12,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     container: devkitpro/devkitarm
-    name: Build with Docker using devkitARM
+    name: Build 3DS with devkitARM
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -41,14 +41,6 @@ jobs:
           mkdir -p ~/artifacts
           cp NDS-Shop.3dsx ~/artifacts
           cp NDS-Shop.cia ~/artifacts
-      - name: Build DSi
-        run: |
-          curl -sL https://wonderful.asie.pl/install.sh | bash -s -- --no-interactive
-          source ~/.wonderful/env
-          cd DSi
-          python build.py release
-          cp release/NDS-Shop.nds ~/artifacts
-          cp release/version.txt ~/artifacts
       - name: Publish build to GH Actions
         uses: actions/upload-artifact@v4
         with:
