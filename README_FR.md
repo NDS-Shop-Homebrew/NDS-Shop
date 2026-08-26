@@ -1,6 +1,6 @@
 # NDS-Shop
 
-Shop alternative pour Nintendo DS / DSi — parcourez, recherchez et téléchargez des jeux homebrew directement depuis votre console.
+Shop alternative pour Nintendo DS / DSi — parcourez, recherchez et téléchargez des jeux NDS directement depuis votre console.
 
 ## Plateformes supportées
 
@@ -9,7 +9,7 @@ Shop alternative pour Nintendo DS / DSi — parcourez, recherchez et télécharg
 
 ## Fonctionnalités
 
-- Parcourir et rechercher une base de données de jeux homebrew
+- Parcourir et rechercher une base de données de jeux NDS
 - Télécharger les `.nds` / `.cia` directement sur la carte SD
 - Support multi-langues (EN, FR, NL, IT)
 - Mise à jour automatique depuis les releases GitHub
