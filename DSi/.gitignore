@@ -1,7 +1,8 @@
 /build/
-/Kekatsu.nds
+/NDS-Shop.nds
 /build.ninja
 /.ninja_deps
 /.ninja_log
 /release/
 /.vscode/
+*.bmp
