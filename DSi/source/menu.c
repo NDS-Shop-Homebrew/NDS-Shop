@@ -1619,7 +1619,7 @@ static void settingsMenu(void)
     setGuiTextMaxWidth(settingBtnTxt[1], 168);
 
     settingBtnTxt[2] = newGuiText(tr("Color scheme"), GUI_TEXT_SIZE_SMALL, col(COLOR_TEXT_2));
-    settingValueTxt[2] = newGuiText(colorSchemeStr, GUI_TEXT_SIZE_SMALL, col(COLOR_TEXT_3));
+    settingValueTxt[2] = newGuiText(tr(colorSchemeStr(settings.colorScheme)), GUI_TEXT_SIZE_SMALL, col(COLOR_TEXT_3));
     setGuiTextMaxWidth(settingBtnTxt[2], 168);
 
     settingBtnTxt[3] = newGuiText(tr("Check for updates on start"), GUI_TEXT_SIZE_SMALL, col(COLOR_TEXT_2));
@@ -1707,9 +1707,7 @@ static void settingsMenu(void)
 
             if (settings.colorScheme == COLOR_SCHEMES_COUNT)
                 settings.colorScheme = 0;
-
-            snprintf(colorSchemeStr, sizeof(colorSchemeStr), "%d", settings.colorScheme + 1);
-            setGuiTextText(settingValueTxt[2], colorSchemeStr);
+setGuiTextText(settingValueTxt[2], tr(colorSchemeStr(settings.colorScheme)));
 
             freeNavbar();
             initNavbar();
