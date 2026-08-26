@@ -40,12 +40,13 @@ extern struct Settings settings;
     : "")
 
 #define colorSchemeStr(x) \
-    ((x) == COLOR_SCHEME_1 ? "Dark" \
-    : (x) == COLOR_SCHEME_2 ? "Blue" \
-    : (x) == COLOR_SCHEME_3 ? "Amber" \
-    : (x) == COLOR_SCHEME_4 ? "Red" \
-    : (x) == COLOR_SCHEME_5 ? "Green" \
-    : (x) == COLOR_SCHEME_6 ? "Purple" \
+    ((x) == COLOR_SCHEME_1 ? "NDS-Shop" \
+    : (x) == COLOR_SCHEME_2 ? "Dark" \
+    : (x) == COLOR_SCHEME_3 ? "Blue" \
+    : (x) == COLOR_SCHEME_4 ? "Amber" \
+    : (x) == COLOR_SCHEME_5 ? "Red" \
+    : (x) == COLOR_SCHEME_6 ? "Green" \
+    : (x) == COLOR_SCHEME_7 ? "Purple" \
     : "")
 
 bool defaultSettings(void);

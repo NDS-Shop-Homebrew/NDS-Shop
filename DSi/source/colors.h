@@ -8,6 +8,7 @@ typedef enum {
     COLOR_SCHEME_4,
     COLOR_SCHEME_5,
     COLOR_SCHEME_6,
+    COLOR_SCHEME_7,
     COLOR_SCHEMES_COUNT
 } ColorSchemeEnum;
 
