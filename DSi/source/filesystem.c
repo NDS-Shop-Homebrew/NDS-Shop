@@ -66,11 +66,17 @@ bool initFat(void)
 
     loadRomDir();
 
-    // Set CWD to correct ROM root directory
+    // Set CWD to FAT root so absolute paths (/NDS-Shop/...) resolve correctly
     if (strncmp(romDir, "sd:", 3) == 0)
         chdir("sd:/");
     else if (strncmp(romDir, "fat:", 4) == 0)
         chdir("fat:/");
+    else if (access("sd:/", F_OK) == 0)
+        chdir("sd:/");
+    else if (access("fat:/", F_OK) == 0)
+        chdir("fat:/");
+    else
+        chdir("/");
 
     return true;
 }

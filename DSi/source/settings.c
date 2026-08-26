@@ -14,9 +14,9 @@ bool defaultSettings(void)
 {
     if (dirExists("/roms")) {
         sprintf(settings.dlPath, "/roms");
-        settings.dlUseDirs = true; // The user probably wants to use platform-specific directories if has a roms directory
+        settings.dlUseDirs = true;
     } else {
-        sprintf(settings.dlPath, "/");
+        sprintf(settings.dlPath, APPDATA_DIR);
         settings.dlUseDirs = false;
     }
 
