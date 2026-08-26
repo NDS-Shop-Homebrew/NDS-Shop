@@ -81,6 +81,47 @@ make
 
 Ou utilisez `compile-3ds.bat` / `clean-3ds.bat` sous Windows.
 
+## Captures d'écran
+
+### DSi
+
+<table>
+<tr>
+<td align="center"><b>Accueil</b></td>
+<td align="center"><b>Parcourir</b></td>
+<td align="center"><b>Paramètres</b></td>
+</tr>
+<tr>
+<td><img src="ressources/screenshoots/DSi/NDS-Shop-DSi_1_FR.png" width="256"></td>
+<td><img src="ressources/screenshoots/DSi/NDS-Shop-DSi_2_FR.png" width="256"></td>
+<td><img src="ressources/screenshoots/DSi/NDS-Shop-DSi_3_FR.png" width="256"></td>
+</tr>
+</table>
+
+### 3DS
+
+<table>
+<tr>
+<td align="center"><b>Accueil</b></td>
+<td align="center"><b>Parcourir</b></td>
+<td align="center"><b>File d'attente</b></td>
+</tr>
+<tr>
+<td><img src="ressources/screenshoots/3DS/NDS-Shop-3DS_1_FR.png" width="320"></td>
+<td><img src="ressources/screenshoots/3DS/NDS-Shop-3DS_2_FR.png" width="320"></td>
+<td><img src="ressources/screenshoots/3DS/NDS-Shop-3DS_3_FR.png" width="320"></td>
+</tr>
+</table>
+
+<table>
+<tr>
+<td align="center"><b>Paramètres</b></td>
+</tr>
+<tr>
+<td><img src="ressources/screenshoots/3DS/NDS-Shop-3DS_4_FR.png" width="320"></td>
+</tr>
+</table>
+
 ## Crédits
 
 Basé sur [Kekatsu DS](https://github.com/cavv-dev/Kekatsu-DS) par cavv.
