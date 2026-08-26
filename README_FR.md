@@ -63,7 +63,7 @@ python build.py
 ```
 
 Utilisez `python build.py release` pour output dans `DSi/release/`.
-Ou utilisez `compile-dsi.bat` / `clean-dsi.bat` sous Windows.
+Ou utilisez `compile_dsi.bat` / `clean_dsi.bat` sous Windows.
 
 ### 3DS
 
@@ -79,7 +79,7 @@ cd NDS-Shop
 make
 ```
 
-Ou utilisez `compile-3ds.bat` / `clean-3ds.bat` sous Windows.
+Ou utilisez `compile_3ds.bat` / `clean_3ds.bat` sous Windows.
 
 ## Captures d'écran
 
