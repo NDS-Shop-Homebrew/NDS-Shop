@@ -3,15 +3,28 @@
 import sys
 import os
 import shutil
+import subprocess
 from architectds.architectds import *
 
-APP_VERSION = '1.0.0'
+def get_git_version():
+    try:
+        version = subprocess.check_output(
+            ['git', 'describe', '--abbrev=0', '--tags'],
+            stderr=subprocess.DEVNULL, text=True
+        ).strip()
+        if version.startswith('v'):
+            version = version[1:]
+        return version
+    except:
+        return '1.0.0'
+
+APP_VERSION = get_git_version()
 NDS_FILE_NAME = 'NDS-Shop.nds'
 RELEASE_DIR = 'release'
 
 arm9 = Arm9Binary(
     sourcedirs=['source'],
-    defines=['USE_FILE32API'],
+    defines=['USE_FILE32API', f'APP_VERSION=\\"{APP_VERSION}\\"'],
     libs=['dswifi9', 'nds9',
           'mbedcrypto', 'mbedtls',
           'mbedx509', 'curl',

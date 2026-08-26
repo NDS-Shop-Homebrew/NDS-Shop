@@ -1,7 +1,9 @@
 #pragma once
 
 #define APP_NAME "NDS-Shop"
-#define APP_VERSION "1.2.0"
+#ifndef APP_VERSION
+#define APP_VERSION "1.0.0"
+#endif
 #define APPDATA_DIR "/" APP_NAME
 #define CACHE_DIR APPDATA_DIR "/cache" 
 
