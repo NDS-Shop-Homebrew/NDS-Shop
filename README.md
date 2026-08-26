@@ -1,8 +1,6 @@
 # NDS-Shop
 
-> An alternative Nintendo DS shop for the Nintendo DSi and 3DS family of systems.
-
-![Screenshot 1](https://github.com/cavv-dev/Kekatsu-DS/raw/main/resources/screenshots/Kekatsu-DS_1.png) ![Screenshot 2](https://github.com/cavv-dev/Kekatsu-DS/raw/main/resources/screenshots/Kekatsu-DS_2.png) ![Screenshot 3](https://github.com/cavv-dev/Kekatsu-DS/raw/main/resources/screenshots/Kekatsu-DS_3.png)
+> An alternative Nintendo DS shop for the Nintendo DS, DSi and 3DS family of systems.
 
 ## Features
 
