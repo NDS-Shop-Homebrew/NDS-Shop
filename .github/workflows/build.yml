@@ -36,12 +36,20 @@ jobs:
           sudo chmod +x makerom
           mv makerom /usr/local/bin
           rm makerom-v0.17-ubuntu_x86_64.zip
-      - name: Build
+      - name: Build 3DS
         run: |
           make
           mkdir -p ~/artifacts
           cp NDS-Shop.3dsx ~/artifacts
           cp NDS-Shop.cia ~/artifacts
+      - name: Build DSi
+        run: |
+          curl -sL https://wonderful.asie.pl/install.sh | bash -s -- --no-interactive
+          source ~/.wonderful/env
+          cd DSi
+          python build.py release
+          cp release/NDS-Shop.nds ~/artifacts
+          cp release/version.txt ~/artifacts
       - name: Publish build to GH Actions
         uses: actions/upload-artifact@v4
         with:
