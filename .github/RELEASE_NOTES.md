@@ -1,4 +1,4 @@
-# NDS-Shop v1.0.0
+# NDS-Shop v1.2.0
 
 ## Nouvelles fonctionnalités
 
@@ -7,6 +7,9 @@
 - **Détection automatique des jeux installés** — les jeux déjà présents sur la carte SD sont détectés et marqués.
 - **Tri par taille et par date de mise à jour** + filtre des jeux installés.
 - **QR Code dynamique** — lien direct vers le téléchargement.
+- **Versioning automatique** — version extraite des tags git à la compilation (3DS + DSi).
+- **Screenshots** — captures d'écran DSi/3DS ajoutées dans le README.
+- **Support FR** — accents corrigés (Latin-1), langue française fonctionnelle.
 
 ## Corrections
 
@@ -19,19 +22,23 @@
 - **Extraction d'archives** : blocage des chemins malveillants (`../`) pouvant écrire n'importe où sur la SD.
 - **Screenshots** : plantage évité lorsqu'une image est corrompue.
 - **Stabilité JSON** : plantage évité si la configuration ou les favoris sont édités avec de mauvais types.
-- Correction de la suppression de jeux (API remplacée).
-- Correction de la détection de version quand aucun tag git n'existe.
-- Correction de l'URL de la police dans les réglages.
-- Chemins restants déplacés de `3ds/Universal-Updater/` vers `3ds/NDS-Shop/` (configuration, musique, police).
-- Journal de debug désactivé dans la version publique.
-- Nettoyage des branches obsolètes et chaînes de traduction inutilisées.
-- Stabilité au boot (changelog auto et vérification de mise à jour désactivés).
+- **DSi : WiFi non-fatal** — l'init WiFi ne crashe plus l'app sans réseau.
+- **DSi : buffer download** — réduit 1MiB → 32KiB pour la RAM DS (4MB).
+- **DSi : FAT fallbacks** — chdir robuste pour melonDS.
+
+## DSi spécifique
+
+- 7 thèmes de couleurs (défaut NDS-Shop + Dark/Blue/Amber/Red/Green/Purple)
+- Langue française (fr.lang) encodage Latin-1 corrigé
+- Auto-création `databases.txt` avec URL par défaut
+- Scripts de build Windows (`compile-dsi.bat`, `clean-dsi.bat`)
 
 ## Crédits
 
 - Crédits mis à jour : **Team NDS-Shop-Homebrew** (Rinzler, LoannMKW) — basé sur Universal-Updater (Universal-Team).
+- DSi : basé sur Kekatsu DS (cavv-dev) — MIT licensed.
 
 ## CI / Release
 
-- Build automatisé sur chaque push vers `main`.
-- Publication automatique de la release (`.cia` + `.3dsx`) à chaque tag `v*`.
+- Build automatisé 3DS + DSi sur chaque tag `v*`.
+- Publication automatique de la release (`.cia` + `.3dsx` + `.nds` + `version.txt`).
