@@ -43,7 +43,7 @@ int main(int argc, char** argv)
     printf("Initializing\n\n");
 
     handleInit(initFat(), "Filesystem...", "\n\nFailed to initialize filesystem\n", 5, true);
-    handleInit(initNetworking() == NETWORKING_INIT_SUCCESS, "Networking...", "\n\nFailed to initialize networking:\nwifi connection failed\n", 5, true);
+    handleInit(initNetworking() == NETWORKING_INIT_SUCCESS, "Networking...", "\n\nFailed to initialize networking:\nwifi connection failed\n", 3, false);
     handleInit((createDir(APPDATA_DIR) && createDir(CACHE_DIR)), "Directories...", "\n\nFailed to initialize directories\n", 5, true);
     handleInit((defaultSettings() && loadSettings()), "Settings...", "\n\nLoaded default settings\n", 3, false);
 
