@@ -6,7 +6,7 @@
 #include <string.h>
 #include <unistd.h>
 
-#define BUFFER_SIZE 1024 * 1024 // 1 MiB
+#define BUFFER_SIZE (32 * 1024) // 32 KiB - DS has limited RAM
 #define USER_AGENT APP_NAME "/" APP_VERSION " (DS)"
 
 NetworkingInitStatus initNetworking(void)
