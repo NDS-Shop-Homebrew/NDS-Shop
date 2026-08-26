@@ -31,6 +31,7 @@ extern struct Settings settings;
     ((x) == LANG_EN ? "English" \
 	: (x) == LANG_IT ? "Italian" \
     : (x) == LANG_NL ? "Dutch" \
+    : (x) == LANG_FR ? "French" \
 	: "")
 
 #define checkUpdateOnStartStr(x) \

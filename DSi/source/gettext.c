@@ -3,6 +3,7 @@
 #include "gettext.h"
 
 #include "en_lang.h"
+#include "fr_lang.h"
 #include "it_lang.h"
 #include "nl_lang.h"
 #include <nds/ndstypes.h>
@@ -231,6 +232,9 @@ static bool loadLanguageFromMemory(const u8* lang_data, size_t lang_size)
 void loadLanguage(LanguageEnum lang)
 {
     switch (lang) {
+    case LANG_FR:
+        loadLanguageFromMemory(fr_lang, fr_lang_size);
+        break;
     case LANG_IT:
         loadLanguageFromMemory(it_lang, it_lang_size);
         break;

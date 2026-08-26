@@ -29,7 +29,7 @@
 - Une carte SD d'au moins 500 Mo pour l'installation des jeux
 
 #### Dernière release
-- [v1.0.0](https://github.com/NDS-Shop-Homebrew/NDS-Shop/releases/latest) — récupérez l'asset `.cia` ou `.3dsx`
+- [dernière release](https://github.com/NDS-Shop-Homebrew/NDS-Shop/releases/latest) — récupérez le fichier `.cia` ou `.3dsx`
 
 ## Compilation
 
@@ -37,13 +37,22 @@
 
 Nécessite [Wonderful Toolchain](https://wonderful.asie.pl/) + BlocksDS.
 
-```bash
-# Depuis le Wonderful Toolchain Shell
-cd DSi
-python build.py
+#### Installer les dépendances
+
+Depuis le dépôt pacman BlocksDS :
+```
+wf-pacman -S blocksds-core toolchain-gcc-arm-none-eabi-zlib toolchain-gcc-arm-none-eabi-libpng16 blocksds-mbedtls blocksds-libcurl
 ```
 
-Utilisez `python build.py release` pour output dans `DSi/release/`.
+#### Compilation
+
+```bash
+git clone --recursive https://github.com/NDS-Shop-Homebrew/NDS-Shop.git
+cd NDS-Shop
+python3 build.py
+```
+
+Utilisez `python3 build.py release` pour output dans `DSi/release/`.
 Ou utilisez `compile-dsi.bat` / `clean-dsi.bat` sous Windows.
 
 ### 3DS

@@ -37,13 +37,22 @@
 
 Requires [Wonderful Toolchain](https://wonderful.asie.pl/) + BlocksDS.
 
-```bash
-# From the Wonderful Toolchain Shell
-cd DSi
-python build.py
+#### Install requirements
+
+From the BlocksDS pacman repository:
+```
+wf-pacman -S blocksds-core toolchain-gcc-arm-none-eabi-zlib toolchain-gcc-arm-none-eabi-libpng16 blocksds-mbedtls blocksds-libcurl
 ```
 
-Use `python build.py release` to output into `DSi/release/`.
+#### Build
+
+```bash
+git clone --recursive https://github.com/NDS-Shop-Homebrew/NDS-Shop.git
+cd NDS-Shop
+python3 build.py
+```
+
+Use `python3 build.py release` to output into `DSi/release/`.
 Or use `compile-dsi.bat` / `clean-dsi.bat` on Windows.
 
 ### 3DS
