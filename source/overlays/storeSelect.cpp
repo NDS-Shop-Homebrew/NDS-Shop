@@ -156,7 +156,9 @@ static bool UpdateStore(const std::string &URL) {
 	bool doSheet = false;
 	std::string file = "";
 
-	if (URL != "") doSheet = DownloadUniStore(URL, -1, file, false);
+	/* Le store NDS-Shop vient de l'API JSON ; les autres restent des UniStores. */
+	if (URL.find("db-nds-shop.fr") != std::string::npos) doSheet = DownloadApiStore(NDS_SHOP_API_BASE, -1, file);
+	else if (URL != "") doSheet = DownloadUniStore(URL, -1, file, false);
 
 	if (doSheet) {
 		nlohmann::json storeJson;

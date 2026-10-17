@@ -1,10 +1,4 @@
 {
-	"NDS-Shop": {
-		"title": "NDS-Shop",
-		"author": "NDS-Shop Team",
-		"url": "https://github.com/SuperSaiyajinStackZ/Stack-Store/raw/master/unistore/Stack-Store.unistore",
-		"description": "db-nds-shop - An alternative Nintendo DS shop, designed for the Nintendo 3DS family of systems."
-	},
 	"Stack-Store": {
 		"title": "Stack-Store",
 		"author": "SuperSaiyajinStackZ",

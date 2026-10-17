@@ -33,6 +33,7 @@
 #include <dirent.h>
 #include <malloc.h>
 #include <algorithm>
+#include <cctype>
 #include <cstdarg>
 #include <cstdlib>
 #include <regex>
@@ -387,6 +388,40 @@ static Result setupContext(CURL *hnd, const char *url) {
 	curl_easy_setopt(hnd, CURLOPT_STDERR, stdout);
 
 	return 0;
+}
+
+/*
+	Récupère une URL et renvoie son corps dans out.
+	@return True en cas de succès.
+*/
+static bool fetchUrl(const std::string &url, std::string &out) {
+	bool ok = false;
+
+	void *socubuf = memalign(0x1000, 0x100000);
+	if (!socubuf) return false;
+
+	if (R_FAILED(socInit((u32 *)socubuf, 0x100000))) {
+		free(socubuf);
+		return false;
+	}
+
+	CURL *hnd = curl_easy_init();
+	if (hnd && setupContext(hnd, url.c_str()) == 0) {
+		if (curl_easy_perform(hnd) == CURLE_OK) {
+			if (result_buf) out.assign(result_buf, result_written);
+			ok = true;
+		}
+		curl_easy_cleanup(hnd);
+	}
+
+	socExit();
+	free(result_buf);
+	free(socubuf);
+	result_buf = nullptr;
+	result_sz = 0;
+	result_written = 0;
+
+	return ok;
 }
 
 /*
@@ -759,6 +794,179 @@ bool DownloadUniStore(const std::string &URL, int currentRev, std::string &fl, b
 	result_written = 0;
 
 	return false;
+}
+
+/*
+	Récupère le catalogue NDS-Shop depuis l'API JSON et l'écrit comme cache
+	local dans _STORE_PATH. Le fichier écrit garde la forme UniStore v3, ce qui
+	permet au reste de l'application (Store, StoreEntry, scripts) de fonctionner
+	sans changement, et donne un mode hors-ligne.
+
+	const std::string &apiBase: Base de l'API (ex. https://db-nds-shop.fr/api).
+	int currentRev: Révision déjà en cache (-1 si aucune).
+	std::string &fl: Sortie, le nom du fichier de cache.
+	@return True si le cache a été (ré)écrit.
+*/
+bool DownloadApiStore(const std::string &apiBase, int currentRev, std::string &fl) {
+	if (!checkWifiStatus()) return false;
+
+	if (currentRev > -1) Msg::DisplayMsg(Lang::get("CHECK_UNISTORE_UPDATES"));
+	else Msg::DisplayMsg(Lang::get("DOWNLOADING_UNISTORE"));
+
+	const std::string base = apiBase.empty() ? std::string(NDS_SHOP_API_BASE) : apiBase;
+	const std::string fileName = NDS_SHOP_STORE_FILE;
+
+	nlohmann::json entries = nlohmann::json::array();
+	nlohmann::json storeMeta = nlohmann::json::object();
+	int total = 0, revision = 0;
+	bool haveRevision = false;
+
+	/* Le catalogue est paginé : on enchaîne les pages. */
+	for (int page = 1; page <= 50; page++) {
+		char url[512];
+		snprintf(url, sizeof(url), "%s/v1/catalog?page=%d&limit=200", base.c_str(), page);
+
+		std::string body;
+		if (!fetchUrl(url, body)) return false;
+
+		nlohmann::json parsed = nlohmann::json::parse(body, nullptr, false);
+		if (parsed.is_discarded() || !parsed.contains("entries") || !parsed["entries"].is_array()) return false;
+
+		if (!haveRevision) {
+			haveRevision = true;
+			if (parsed.contains("revision") && parsed["revision"].is_number()) revision = parsed["revision"];
+			if (parsed.contains("store") && parsed["store"].is_object()) storeMeta = parsed["store"];
+
+			/* Rien de nouveau : on garde le cache existant. */
+			if (currentRev > -1 && revision <= currentRev) return false;
+		}
+
+		for (auto &entry : parsed["entries"]) entries.push_back(entry);
+		if (parsed.contains("total") && parsed["total"].is_number()) total = parsed["total"];
+		if (parsed["entries"].empty() || (int)entries.size() >= total) break;
+	}
+
+	if (entries.empty()) return false;
+
+	/* Accès tolérants : une donnée inattendue est ignorée, pas fatale. */
+	auto str = [](const nlohmann::json &j, const char *key, const std::string &fallback = "") -> std::string {
+		return (j.contains(key) && j[key].is_string()) ? j[key].get<std::string>() : fallback;
+	};
+	auto arr = [](const nlohmann::json &j, const char *key, const std::vector<std::string> &fallback) {
+		std::vector<std::string> out;
+		if (j.contains(key) && j[key].is_array()) {
+			for (auto &item : j[key]) {
+				if (item.is_string()) out.push_back(item.get<std::string>());
+			}
+		}
+		return out.empty() ? fallback : out;
+	};
+	auto num = [](const nlohmann::json &j, const char *key, long long fallback) -> long long {
+		return (j.contains(key) && j[key].is_number()) ? j[key].get<long long>() : fallback;
+	};
+
+	nlohmann::json storeContent = nlohmann::json::array();
+
+	for (auto &entry : entries) {
+		if (!entry.is_object()) continue;
+
+		nlohmann::json downloads = entry.value("downloads", nlohmann::json::object());
+		nlohmann::json scripts = entry.value("scripts", nlohmann::json::array());
+		if (!downloads.is_object() || downloads.empty()) continue;
+
+		/* Premier téléchargement NDS/DSi : son nom sert de clé d'entrée. */
+		std::string romName, romSize, romUrl;
+		for (auto it = downloads.begin(); it != downloads.end(); ++it) {
+			std::string lower = it.key();
+			std::transform(lower.begin(), lower.end(), lower.begin(), [](unsigned char ch) { return (char)std::tolower(ch); });
+
+			if (lower.size() > 4 && (lower.rfind(".nds") == lower.size() - 4 || lower.rfind(".dsi") == lower.size() - 4)) {
+				romName = it.key();
+				if (it.value().is_object()) {
+					if (it.value().contains("size_str") && it.value()["size_str"].is_string()) romSize = it.value()["size_str"];
+					if (it.value().contains("url") && it.value()["url"].is_string()) romUrl = it.value()["url"];
+				}
+				break;
+			}
+		}
+
+		if (romName.empty()) continue;
+
+		/* Script fourni par l'API ; sinon, repli minimal : télécharger la ROM. */
+		if (!scripts.is_array() || scripts.empty()) {
+			if (romUrl.empty()) continue;
+			nlohmann::json step = nlohmann::json::object();
+			step["type"] = "downloadFile";
+			step["file"] = romUrl;
+			step["output"] = "/roms/nds/" + romName;
+			scripts = nlohmann::json::array({ step });
+		}
+
+		nlohmann::json info = nlohmann::json::object();
+		info["title"] = str(entry, "title");
+		info["author"] = str(entry, "author");
+		info["description"] = str(entry, "description");
+		info["version"] = str(entry, "version");
+		info["category"] = arr(entry, "categories", std::vector<std::string>{ "game" });
+		info["console"] = arr(entry, "systems", std::vector<std::string>{ "NDS" });
+		info["license"] = "Proprietary";
+		info["releasenotes"] = "";
+		info["wiki"] = "";
+		info["last_updated"] = str(entry, "updated");
+		info["icon_index"] = (int)num(entry, "icon_index", -1);
+		info["sheet_index"] = (int)num(entry, "sheet_index", 0);
+
+		nlohmann::json shots = nlohmann::json::array();
+		if (entry.contains("screenshots") && entry["screenshots"].is_array()) {
+			for (auto &shot : entry["screenshots"]) {
+				if (!shot.is_object()) continue;
+				nlohmann::json item = nlohmann::json::object();
+				item["url"] = str(shot, "url");
+				item["description"] = str(shot, "description", "Capture");
+				shots.push_back(item);
+			}
+		}
+		info["screenshots"] = shots;
+
+		/* Le script d'installation vient de l'API (boxart, ROM, forwarder, CIA). */
+		nlohmann::json download = nlohmann::json::object();
+		download["type"] = "nds";
+		download["size"] = romSize;
+		download["script"] = scripts;
+
+		nlohmann::json item = nlohmann::json::object();
+		item["info"] = info;
+		item[romName] = download;
+		storeContent.push_back(item);
+	}
+
+	nlohmann::json storeInfo = nlohmann::json::object();
+	storeInfo["title"] = str(storeMeta, "title", "NDS-Shop");
+	storeInfo["author"] = str(storeMeta, "author", "NDS-Shop-Homebrew");
+	storeInfo["description"] = str(storeMeta, "description");
+	storeInfo["url"] = base;
+	storeInfo["file"] = fileName;
+	storeInfo["sheet"] = "db-nds-shop.t3x";
+	storeInfo["sheetURL"] = str(storeMeta, "sheet", NDS_SHOP_SHEET_URL);
+	storeInfo["dsSheet"] = "db-nds-shop.tdx";
+	storeInfo["dsSheetURL"] = str(storeMeta, "sheet_dsi");
+	storeInfo["version"] = 3;
+	storeInfo["revision"] = revision;
+
+	nlohmann::json store = nlohmann::json::object();
+	store["storeInfo"] = storeInfo;
+	store["storeContent"] = storeContent;
+
+	fl = fileName;
+
+	FILE *out = fopen((std::string(_STORE_PATH) + fileName).c_str(), "w");
+	if (!out) return false;
+
+	const std::string dumped = store.dump();
+	fwrite(dumped.c_str(), 1, dumped.size(), out);
+	fclose(out);
+
+	return true;
 }
 
 /*

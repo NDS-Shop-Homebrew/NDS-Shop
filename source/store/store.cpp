@@ -84,21 +84,26 @@ void Store::update(const std::string &file) {
 		if (this->storeJson.contains("storeInfo")) {
 			/* Checking... */
 			if (checkWifiStatus()) { // Only do, if WiFi available.
-				if (this->storeJson["storeInfo"].contains("url") && this->storeJson["storeInfo"]["url"].is_string()) {
-					if (this->storeJson["storeInfo"].contains("file") && this->storeJson["storeInfo"]["file"].is_string()) {
+				if (this->storeJson["storeInfo"].contains("file") && this->storeJson["storeInfo"]["file"].is_string()) {
 
-						const std::string fl = this->storeJson["storeInfo"]["file"];
-						if (!(fl.find("/") != std::string::npos)) {
+					const std::string fl = this->storeJson["storeInfo"]["file"];
+					if (!(fl.find("/") != std::string::npos)) {
+						std::string tmp = "";
+
+						/* Le store NDS-Shop vient de l'API JSON ; les autres restent des UniStores. */
+						if (this->fileName == NDS_SHOP_STORE_FILE) {
+							doSheet = DownloadApiStore(NDS_SHOP_API_BASE, rev, tmp);
+
+							/* Recharge le storeInfo qui vient d'être écrit (URL d'atlas à jour). */
+							if (doSheet) this->LoadFromFile(file);
+
+						} else if (this->storeJson["storeInfo"].contains("url") && this->storeJson["storeInfo"]["url"].is_string()) {
 							const std::string URL = this->storeJson["storeInfo"]["url"];
-
-							if (URL != "") {
-								std::string tmp = "";
-								doSheet = DownloadUniStore(URL, rev, tmp);
-							}
-
-						} else {
-							Msg::waitMsg(Lang::get("FILE_SLASH"));
+							if (URL != "") doSheet = DownloadUniStore(URL, rev, tmp);
 						}
+
+					} else {
+						Msg::waitMsg(Lang::get("FILE_SLASH"));
 					}
 				}
 

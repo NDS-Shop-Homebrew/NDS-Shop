@@ -69,8 +69,7 @@ MainScreen::MainScreen() {
 		if (access("sdmc:/3ds/NDS-Shop/stores/db-nds-shop.unistore", F_OK) != 0) {
 			if (checkWifiStatus()) {
 				std::string tmp = ""; // Just a temp.
-				DownloadUniStore("https://db-nds-shop.fr/unistore/db-nds-shop.unistore", -1, tmp, true, true);
-				DownloadSpriteSheet("https://db-nds-shop.fr/unistore/db-nds-shop.t3x", "db-nds-shop.t3x");
+				if (DownloadApiStore(NDS_SHOP_API_BASE, -1, tmp)) DownloadSpriteSheet(NDS_SHOP_SHEET_URL, "db-nds-shop.t3x");
 
 			} else {
 				notConnectedMsg();
@@ -82,8 +81,7 @@ MainScreen::MainScreen() {
 			if (info.Version != 3 && info.Version != _UNISTORE_VERSION) {
 				if (checkWifiStatus()) {
 					std::string tmp = ""; // Just a temp.
-					DownloadUniStore("https://db-nds-shop.fr/unistore/db-nds-shop.unistore", -1, tmp, true, true);
-					DownloadSpriteSheet("https://db-nds-shop.fr/unistore/db-nds-shop.t3x", "db-nds-shop.t3x");
+					if (DownloadApiStore(NDS_SHOP_API_BASE, -1, tmp)) DownloadSpriteSheet(NDS_SHOP_SHEET_URL, "db-nds-shop.t3x");
 
 				} else {
 					notConnectedMsg();

@@ -73,6 +73,18 @@ void doneMsg(void);
 
 bool IsUpdateAvailable(const std::string &URL, int revCurrent);
 bool DownloadUniStore(const std::string &URL, int currentRev, std::string &fl, bool isDownload = false, bool isUDB = false);
+
+/*
+	Récupère le catalogue NDS-Shop depuis l'API JSON et l'écrit comme cache
+	local (fichier UniStore v3) dans _STORE_PATH.
+
+	const std::string &apiBase: Base de l'API (ex. https://db-nds-shop.fr/api).
+	int currentRev: Révision déjà en cache (-1 si aucune).
+	std::string &fl: Sortie, le nom du fichier de cache.
+	@return True si le cache a été mis à jour (et qu'il faut donc l'atlas).
+*/
+bool DownloadApiStore(const std::string &apiBase, int currentRev, std::string &fl);
+
 bool DownloadSpriteSheet(const std::string &URL, const std::string &file);
 NDSShopUpdate IsNDSShopUpdateAvailable();
 void UpdateAction();

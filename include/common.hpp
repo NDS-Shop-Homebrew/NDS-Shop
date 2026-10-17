@@ -35,6 +35,11 @@
 #define _THEME_AMOUNT 2
 #define _UNISTORE_VERSION 4
 
+/* NDS-Shop : le catalogue vient de l'API JSON, plus d'un fichier UniStore. */
+#define NDS_SHOP_STORE_FILE "db-nds-shop.unistore"
+#define NDS_SHOP_API_BASE "https://db-nds-shop.fr/api"
+#define NDS_SHOP_SHEET_URL "https://db-nds-shop.fr/api/v1/assets/unistore/db-nds-shop.t3x"
+
 inline std::unique_ptr<Config> config;
 inline uint32_t hRepeat, hDown, hHeld;
 inline touchPosition touch;
