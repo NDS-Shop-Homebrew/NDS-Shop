@@ -1,74 +1,116 @@
-# NDS-Shop (3DS)
+# NDS-Shop (Nintendo 3DS)
 
-> An alternative Nintendo DS shop for the Nintendo 3DS family of systems.
+Application homebrew pour Nintendo 3DS qui installe des jeux **Nintendo DS**
+depuis le catalogue de [NDS-Shop](https://db-nds-shop.fr).
 
-## Features
+L'application télécharge la ROM sur la carte SD, puis installe un **raccourci**
+(forwarder `.cia`) sur le menu d'accueil : le jeu se lance ensuite comme
+n'importe quel titre installé.
 
-- Browse and search a curated database of NDS games
-- Download `.cia` / `.3dsx` directly to SD card
-- ZIP file extraction
-- Database loading via URL or file
-- Multiple database support
-- Automatic update check
-- Customizable color scheme
-- Multi-language support (EN, FR, NL, IT)
+Le périmètre est volontairement limité aux **jeux Nintendo DS**. Aucun contenu
+3DS, GBA ou DSi n'est distribué.
 
-## Download
+## Fonctionnalités
 
-### 3DS
+- Catalogue paginé récupéré depuis l'API (`/api/v1/catalog`), avec cache local
+  pour un usage hors-ligne.
+- Recherche par titre ou auteur.
+- Installation en un geste : téléchargement de la ROM, installation du
+  forwarder, nettoyage des fichiers temporaires.
+- Atlas d'icônes téléchargé depuis l'API (aucune icône de jeu embarquée).
+- Thème clair/sombre et interface en français ou en anglais.
+- Adresse d'API configurable, pour pointer vers une autre instance du
+  catalogue.
 
-#### Requirements
-- A modded Nintendo 3DS (XL) / 2DS (XL)
-- An SD card with at least 500 MB for game installation
+## Installation
 
-#### Latest release
-- [latest release](https://github.com/NDS-Shop-Homebrew/NDS-Shop/releases/latest) — grab the `.cia` or `.3dsx` asset
+1. Télécharger `NDS-Shop.cia` depuis les [versions](../../releases) et
+   l'installer avec un gestionnaire de titres.
+2. Ou bien copier `NDS-Shop.3dsx` dans `sdmc:/3ds/` et le lancer depuis
+   l'explorateur homebrew.
 
-## Building
+Un custom firmware récent est nécessaire (installation de titres non signés).
 
-### 3DS
+## Utilisation
 
-Requires [devkitARM](https://devkitpro.org/wiki/Getting_Started) + [makerom](https://github.com/3DSGuy/Project_CTR) + [bannertool](https://github.com/Epicpkmn11/bannertool).
+| Commande | Action |
+| --- | --- |
+| Croix directionnelle | Parcourir la liste |
+| A | Installer le jeu sélectionné |
+| X | Rechercher |
+| Y | Réglages |
+| SELECT | Aide |
+| L / R | Faire défiler la description |
+| B | Retour / annuler une installation |
+| START | Quitter |
 
-```bash
-git clone --recursive https://github.com/NDS-Shop-Homebrew/NDS-Shop.git
-cd NDS-Shop
-make
+## Configuration
+
+Le fichier `sdmc:/3ds/NDS-Shop/config.txt` est créé au premier lancement :
+
+```ini
+# Configuration NDS-Shop
+api=https://api.db-nds-shop.fr
+lang=fr
+theme=light
 ```
 
-Output: `NDS-Shop.3dsx` and `NDS-Shop.cia`
+L'adresse de l'API se modifie aussi depuis l'écran Réglages (bouton **Y**).
+Les fichiers téléchargés sont rangés dans :
 
-## Screenshots
+- `sdmc:/3ds/NDS-Shop/` : configuration, cache du catalogue, atlas d'icônes ;
+- `sdmc:/roms/nds/` : ROM Nintendo DS.
 
-### 3DS
+## Compilation
 
-<table>
-<tr>
-<td align="center"><b>Home</b></td>
-<td align="center"><b>Browse</b></td>
-<td align="center"><b>Queue</b></td>
-</tr>
-<tr>
-<td><img src="ressources/screenshoots/3DS/NDS-Shop-3DS_1_EN.png" width="320"></td>
-<td><img src="ressources/screenshoots/3DS/NDS-Shop-3DS_2_EN.png" width="320"></td>
-<td><img src="ressources/screenshoots/3DS/NDS-Shop-3DS_3_EN.png" width="320"></td>
-</tr>
-</table>
+Prérequis : [devkitPro](https://devkitpro.org/) avec `devkitARM`, `libctru` et
+`citro2d` (les paquets `3ds-dev` et `3ds-portlibs` fournissent aussi libcurl et
+mbedtls).
 
-<table>
-<tr>
-<td align="center"><b>Settings</b></td>
-</tr>
-<tr>
-<td><img src="ressources/screenshoots/3DS/NDS-Shop-3DS_4_EN.png" width="320"></td>
-</tr>
-</table>
+```sh
+make        # NDS-Shop.3dsx
+make cia    # NDS-Shop.cia (nécessite bannertool et makerom)
+make clean
+```
 
-## DSi Version
+La version intégrée à l'application provient du dernier tag git (`vX.Y.Z`) ;
+à défaut, `1.0.0` est utilisé.
 
-The DSi port is maintained in a separate repository: [NDS-Shop-DSi](https://github.com/NDS-Shop-Homebrew/NDS-Shop-DSi)
+Les visuels (icônes d'interface, bannière, icône de titre) sont générés depuis
+les sources SVG :
 
-## Credits
+```sh
+tools/gen-assets.sh   # rsvg-convert + python3
+```
 
-Based on [Universal-Updater](https://github.com/Universal-Team/Universal-Updater) by Universal-Team.
-Database: [UDB-Kekatsu-DS](https://github.com/cavv-dev/UDB-Kekatsu-DS).
+### Tests
+
+Le parseur de catalogue se teste sans console :
+
+```sh
+make -C tests/host
+```
+
+## Organisation du code
+
+| Fichier | Rôle |
+| --- | --- |
+| `source/main.c` | Boucle principale, entrées, actions |
+| `source/ui.c` | Rendu citro2d (thème, écrans) |
+| `source/net.c` | Requêtes HTTP (libcurl) |
+| `source/catalog.c` | Chargement et analyse du catalogue |
+| `source/json.c` | Analyseur JSON minimal |
+| `source/atlas.c` | Atlas d'icônes de la boutique (cache SD) |
+| `source/cia.c` | Installation d'un titre via le service AM |
+| `source/scripts.c` | Exécution des actions du catalogue |
+| `source/fsutil.c` | Carte SD et configuration |
+
+## Périmètre et retrait de contenu
+
+L'application ne publie aucun contenu : elle consomme un catalogue administré
+par l'équipe de NDS-Shop. Les demandes de retrait sont traitées via la page
+DMCA du site.
+
+## Licence
+
+GNU General Public License v3.0 — voir [LICENSE](LICENSE).
