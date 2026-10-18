@@ -1,25 +1,19 @@
-
-*.bin
-*.d
-*.o
-
-/extras
-*.smdh
-*.elf
-*.cia
+# Sortie de compilation
+build/
 *.3dsx
-
-*build
+*.cia
+*.elf
+*.smdh
 *.map
 *.lst
-.vscode
-*.DS_Store
-romfs/gfx/*.t3x
-include/version.hpp
-cppcheck.log
 
+# Outils téléchargés (CI / local)
 bannertool*
 makerom*
-*.pfs0
-*.nso
-*.nacp
+
+# Divers
+*.DS_Store
+.vscode
+
+# Tests hôtes
+tests/host/test_catalog

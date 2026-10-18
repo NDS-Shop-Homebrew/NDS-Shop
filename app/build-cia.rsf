@@ -3,9 +3,6 @@ BasicInfo:
   ProductCode             : "CTR-H-NDSS"
   Logo                    : Homebrew # Nintendo / Licensed / Distributed / iQue / iQueForSystem
 
-RomFs:
-  RootPath: "../romfs"
-
 TitleInfo:
   Category                : Application
   UniqueId                : 0x8C24F

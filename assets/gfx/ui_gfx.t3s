@@ -1,0 +1,16 @@
+--atlas -f rgba -z auto
+
+ui/logo.png
+ui/download.png
+ui/settings.png
+ui/search.png
+ui/back.png
+ui/check.png
+ui/warning.png
+ui/cartridge.png
+ui/refresh.png
+ui/globe.png
+ui/moon.png
+ui/up.png
+ui/down.png
+ui/help.png
