@@ -1,4 +1,3 @@
-// NDS-Shop — point d'entrée : boucle principale et gestion des entrées.
 #include <3ds.h>
 #include <citro2d.h>
 
@@ -6,23 +5,20 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "app.h"
-#include "atlas.h"
-#include "catalog.h"
-#include "fsutil.h"
-#include "i18n.h"
-#include "net.h"
-#include "scripts.h"
-#include "ui.h"
+#include "core/app.h"
+#include "catalog/atlas.h"
+#include "catalog/catalog.h"
+#include "core/fsutil.h"
+#include "core/i18n.h"
+#include "core/status.h"
+#include "net/net.h"
+#include "tasks/scripts.h"
+#include "ui/ui.h"
 
 #define DESC_STEP 300
 #define STATUS_FRAMES 180
 
 AppState g_app;
-
-// ---------------------------------------------------------------------------
-// Liste filtrée
-// ---------------------------------------------------------------------------
 
 static bool contains_ci(const char *hay, const char *needle)
 {
@@ -95,10 +91,6 @@ static void set_status(const char *text)
     g_app.status_ttl = STATUS_FRAMES;
 }
 
-// ---------------------------------------------------------------------------
-// Progression (rappels réseau / installation)
-// ---------------------------------------------------------------------------
-
 static void loading_progress(const char *label, float frac, void *user)
 {
     (void)user;
@@ -124,10 +116,6 @@ static void task_progress(const char *label, float frac, void *user)
     down = hidKeysDown();
     if (down & KEY_B) g_app.cancel = true;
 }
-
-// ---------------------------------------------------------------------------
-// Chargements
-// ---------------------------------------------------------------------------
 
 static void load_atlas(void)
 {
@@ -160,10 +148,6 @@ static void load_catalog(void)
     ui_frame_end();
     load_atlas();
 }
-
-// ---------------------------------------------------------------------------
-// Actions
-// ---------------------------------------------------------------------------
 
 static void action_install(void)
 {
@@ -265,10 +249,6 @@ static void settings_reset(void)
     set_status(tr("settings.reset"));
 }
 
-// ---------------------------------------------------------------------------
-// Entrées
-// ---------------------------------------------------------------------------
-
 static void clamp_scroll(void)
 {
     if (g_app.selected < g_app.scroll) g_app.scroll = g_app.selected;
@@ -315,10 +295,6 @@ static void handle_error(u32 down)
     if (down & KEY_B) g_app.screen = SCR_LIST;
 }
 
-// ---------------------------------------------------------------------------
-// Point d'entrée
-// ---------------------------------------------------------------------------
-
 int main(void)
 {
     memset(&g_app, 0, sizeof(g_app));
@@ -334,7 +310,6 @@ int main(void)
     theme_apply(g_app.config.dark);
 
     if (!ui_init()) {
-        // Sans tampon de texte ni écran, l'application ne peut pas rendre.
         C2D_Fini();
         C3D_Fini();
         cfguExit();
@@ -344,6 +319,7 @@ int main(void)
 
     fs_mkdir_tree(APP_DIR);
     net_init();
+    status_init();
     load_catalog();
 
     while (aptMainLoop() && g_app.running) {
@@ -351,6 +327,7 @@ int main(void)
 
         hidScanInput();
         down = hidKeysDown();
+        status_refresh();
 
         if (down & KEY_START) break;
 
@@ -380,6 +357,7 @@ int main(void)
     catalog_free(&g_app.catalog);
     free(g_app.filter);
     net_exit();
+    status_exit();
     ui_exit();
     C2D_Fini();
     C3D_Fini();

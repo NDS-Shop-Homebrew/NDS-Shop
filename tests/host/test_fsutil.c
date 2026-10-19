@@ -8,8 +8,8 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "app.h"
-#include "fsutil.h"
+#include "core/app.h"
+#include "core/fsutil.h"
 
 AppState g_app;
 

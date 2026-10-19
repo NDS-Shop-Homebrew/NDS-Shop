@@ -126,17 +126,15 @@ dans [docs/TEST-3DS.md](docs/TEST-3DS.md).
 
 ## Organisation du code
 
-| Fichier | Rôle |
+| Dossier | Rôle |
 | --- | --- |
-| `source/main.c` | Boucle principale, entrées, actions |
-| `source/ui.c` | Rendu citro2d (thème, écrans) |
-| `source/net.c` | Requêtes HTTP (libcurl) |
-| `source/catalog.c` | Chargement et analyse du catalogue |
-| `source/json.c` | Analyseur JSON minimal |
-| `source/atlas.c` | Atlas d'icônes de la boutique (cache SD) |
-| `source/cia.c` | Installation d'un titre via le service AM |
-| `source/scripts.c` | Exécution des actions du catalogue |
-| `source/fsutil.c` | Carte SD et configuration |
+| `source/core/` | Boucle principale, carte SD/config, traductions, batterie/Wi-Fi |
+| `source/ui/` | Rendu citro2d (thème, écrans) |
+| `source/catalog/` | Catalogue, JSON, atlas d'icônes (cache SD) |
+| `source/net/` | Requêtes HTTP (libcurl), vitesse de téléchargement |
+| `source/tasks/` | Installation .cia, exécution des actions du catalogue |
+
+Les en-têtes correspondants sont dans `include/` avec la même arborescence.
 
 ## Périmètre et retrait de contenu
 

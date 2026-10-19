@@ -7,8 +7,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "catalog.h"
-#include "json.h"
+#include "catalog/catalog.h"
+#include "catalog/json.h"
 
 // --- Doublures --------------------------------------------------------------
 // La couche réseau/SD n'est pas testée ici : catalog.c ne doit pas l'appeler.

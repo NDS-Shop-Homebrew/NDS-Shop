@@ -1,11 +1,11 @@
-// Installation d'un titre (.cia) : copie du fichier vers le gestionnaire de
-// titres (service AM de la console).
-#include "cia.h"
+#include "tasks/cia.h"
 
 #include <3ds.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include "core/app.h"
 
 #define CIA_CHUNK 0x8000u
 
@@ -30,7 +30,7 @@ bool cia_install(const char *sd_path, ProgressFn cb, void *user, char *err, size
     if (err != NULL && errcap > 0) err[0] = '\0';
 
     if (sd_path == NULL || sd_path[0] == '\0') {
-        if (err != NULL) snprintf(err, errcap, "chemin .cia invalide");
+        if (err != NULL) snprintf(err, errcap, "invalid .cia path");
         return false;
     }
 
@@ -39,7 +39,7 @@ bool cia_install(const char *sd_path, ProgressFn cb, void *user, char *err, size
     rc = FSUSER_OpenFile(&file_handle, ARCHIVE_SDMC, fsMakePath(PATH_ASCII, path_buf),
                          FS_OPEN_READ, 0);
     if (R_FAILED(rc)) {
-        if (err != NULL) snprintf(err, errcap, "fichier .cia introuvable (0x%08lX)", (unsigned long)rc);
+        if (err != NULL) snprintf(err, errcap, ".cia file not found (0x%08lX)", (unsigned long)rc);
         return false;
     }
     FSFILE_GetSize(file_handle, &total);
@@ -47,7 +47,7 @@ bool cia_install(const char *sd_path, ProgressFn cb, void *user, char *err, size
     rc = amInit();
     if (R_FAILED(rc)) {
         FSFILE_Close(file_handle);
-        if (err != NULL) snprintf(err, errcap, "service AM indisponible (0x%08lX)", (unsigned long)rc);
+        if (err != NULL) snprintf(err, errcap, "AM service unavailable (0x%08lX)", (unsigned long)rc);
         return false;
     }
 
@@ -55,7 +55,7 @@ bool cia_install(const char *sd_path, ProgressFn cb, void *user, char *err, size
     if (R_FAILED(rc)) {
         amExit();
         FSFILE_Close(file_handle);
-        if (err != NULL) snprintf(err, errcap, "installation refusée (0x%08lX)", (unsigned long)rc);
+        if (err != NULL) snprintf(err, errcap, "install rejected (0x%08lX)", (unsigned long)rc);
         return false;
     }
 
@@ -64,7 +64,7 @@ bool cia_install(const char *sd_path, ProgressFn cb, void *user, char *err, size
         AM_CancelCIAInstall(cia_handle);
         amExit();
         FSFILE_Close(file_handle);
-        if (err != NULL) snprintf(err, errcap, "mémoire insuffisante");
+        if (err != NULL) snprintf(err, errcap, "out of memory");
         return false;
     }
 
@@ -86,20 +86,20 @@ bool cia_install(const char *sd_path, ProgressFn cb, void *user, char *err, size
     if (g_app.cancel) {
         AM_CancelCIAInstall(cia_handle);
         amExit();
-        if (err != NULL) snprintf(err, errcap, "installation annulée");
+        if (err != NULL) snprintf(err, errcap, "install cancelled");
         return false;
     }
     if (R_FAILED(rc)) {
         AM_CancelCIAInstall(cia_handle);
         amExit();
-        if (err != NULL) snprintf(err, errcap, "écriture du titre impossible (0x%08lX)", (unsigned long)rc);
+        if (err != NULL) snprintf(err, errcap, "title write failed (0x%08lX)", (unsigned long)rc);
         return false;
     }
 
     rc = AM_FinishCiaInstall(cia_handle);
     amExit();
     if (R_FAILED(rc)) {
-        if (err != NULL) snprintf(err, errcap, "finalisation impossible (0x%08lX)", (unsigned long)rc);
+        if (err != NULL) snprintf(err, errcap, "finalization failed (0x%08lX)", (unsigned long)rc);
         return false;
     }
 

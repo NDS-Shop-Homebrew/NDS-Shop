@@ -1,13 +1,9 @@
-// Interface de NDS-Shop (citro2d).
-//
-// Style repris du site : fond clair, accent bleu #0072CE, cartes à coins
-// arrondis (12 px) et bordure fine.
-#include "ui.h"
+#include "ui/ui.h"
 
-#include "assets.h"
-#include "atlas.h"
-#include "i18n.h"
-#include "theme.h"
+#include "ui/assets.h"
+#include "catalog/atlas.h"
+#include "core/i18n.h"
+#include "ui/theme.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -37,10 +33,6 @@ static C3D_RenderTarget *s_top;
 static C3D_RenderTarget *s_bottom;
 static float             s_char_w = 8.0f;
 
-// ---------------------------------------------------------------------------
-// Palette
-// ---------------------------------------------------------------------------
-
 void theme_apply(bool dark)
 {
     if (dark) {
@@ -69,10 +61,6 @@ void theme_apply(bool dark)
         g_theme.danger     = C2D_Color32(0xDC, 0x26, 0x26, 0xFF);
     }
 }
-
-// ---------------------------------------------------------------------------
-// Cycle de vie
-// ---------------------------------------------------------------------------
 
 static bool parse_text(C2D_Text *out, const char *str)
 {
@@ -128,10 +116,6 @@ void ui_frame_end(void)
     C3D_FrameEnd(0);
 }
 
-// ---------------------------------------------------------------------------
-// Primitives
-// ---------------------------------------------------------------------------
-
 static void text_at(const char *str, float x, float y, float scale, u32 color)
 {
     C2D_Text t;
@@ -167,27 +151,16 @@ static void text_render_wrap(const char *str, float x, float y, float box_w, flo
     C2D_DrawText(&t, C2D_WithColor | C2D_WordWrap, x, y, 0.5f, scale, scale, color, box_w);
 }
 
-static void fill_round(float x, float y, float w, float h, float r, u32 color)
+static void fill_rect(float x, float y, float w, float h, u32 color)
 {
     if (w <= 0.0f || h <= 0.0f) return;
-    if (r * 2.0f > w) r = w / 2.0f;
-    if (r * 2.0f > h) r = h / 2.0f;
-    if (r < 0.0f) r = 0.0f;
-    C2D_DrawRectSolid(x + r, y, 0.9f, w - 2.0f * r, h, color);
-    C2D_DrawRectSolid(x, y + r, 0.9f, w, h - 2.0f * r, color);
-    if (r > 0.0f) {
-        C2D_DrawCircleSolid(x + r, y + r, 0.9f, r, color);
-        C2D_DrawCircleSolid(x + w - r, y + r, 0.9f, r, color);
-        C2D_DrawCircleSolid(x + r, y + h - r, 0.9f, r, color);
-        C2D_DrawCircleSolid(x + w - r, y + h - r, 0.9f, r, color);
-    }
+    C2D_DrawRectSolid(x, y, 0.9f, w, h, color);
 }
 
-// Carte : fond arrondi + bordure d'un pixel (bordure dessinée en dessous).
 static void card(float x, float y, float w, float h, u32 fill, u32 border)
 {
-    fill_round(x, y, w, h, UI_RADIUS, border);
-    fill_round(x + 1.0f, y + 1.0f, w - 2.0f, h - 2.0f, UI_RADIUS - 1.0f, fill);
+    fill_rect(x, y, w, h, border);
+    fill_rect(x + 1.0f, y + 1.0f, w - 2.0f, h - 2.0f, fill);
 }
 
 static void draw_icon(int index, float x, float y, float size, u32 color)
@@ -202,8 +175,6 @@ static void draw_icon(int index, float x, float y, float size, u32 color)
                     size / (float)img.subtex->width, size / (float)img.subtex->height);
 }
 
-// Comme draw_icon(), mais sans teinte : réservé aux visuels en couleurs
-// (l'icône officielle de la boutique), que le thème ne doit pas recolorer.
 static void draw_icon_natural(int index, float x, float y, float size)
 {
     C2D_Image img;
@@ -222,22 +193,21 @@ static void draw_game_icon(int icon_index, float x, float y, float size)
                         size / (float)img.subtex->width, size / (float)img.subtex->height);
         return;
     }
-    fill_round(x, y, size, size, 6.0f, g_theme.muted);
+    fill_rect(x, y, size, size, g_theme.muted);
     draw_icon(ICON_CARTRIDGE, x + size * 0.15f, y + size * 0.15f, size * 0.7f, g_theme.muted_fg);
 }
 
 static void draw_progress(float x, float y, float w, float h, float frac)
 {
     float fw;
-    fill_round(x, y, w, h, h / 2.0f, g_theme.muted);
+    fill_rect(x, y, w, h, g_theme.muted);
     if (frac <= 0.0f) return;
     if (frac > 1.0f) frac = 1.0f;
     fw = w * frac;
     if (fw < h) fw = h;
-    fill_round(x, y, fw, h, h / 2.0f, g_theme.primary);
+    fill_rect(x, y, fw, h, g_theme.primary);
 }
 
-// Tronque `src` pour tenir dans `max_w` (approx. via la largeur moyenne).
 static void ellipsize(const char *src, char *out, size_t cap, float max_w, float scale)
 {
     size_t max_chars;
@@ -255,13 +225,11 @@ static void ellipsize(const char *src, char *out, size_t cap, float max_w, float
     len = max_chars;
     while (len > 0 && ((unsigned char)out[len] & 0xC0) == 0x80) len--;
 
-    // Ajout explicite du caractère de suspension (3 octets UTF-8).
     if (len + 3 >= cap) len = (cap > 4) ? cap - 4 : 0;
     memcpy(out + len, "\u2026", 3);
     out[len + 3] = '\0';
 }
 
-// Fenêtre de texte (pagination par caractères, sans découpe de caractère).
 static void window(const char *src, int scroll, int span, char *out, size_t cap)
 {
     size_t start;
@@ -285,16 +253,15 @@ static void window(const char *src, int scroll, int span, char *out, size_t cap)
     out[n] = '\0';
 }
 
-// ---------------------------------------------------------------------------
-// Blocs communs
-// ---------------------------------------------------------------------------
-
 static void draw_header(const char *right_label)
 {
     char subtitle[192];
+    char status_line[128];
+    int  bat_x = TOP_W - 60.0f;
+    int  wifi_x = TOP_W - 30.0f;
 
-    C2D_DrawRectSolid(0.0f, 0.0f, 0.8f, TOP_W, HEADER_H, g_theme.card);
-    C2D_DrawRectSolid(0.0f, HEADER_H - 1.0f, 0.8f, TOP_W, 1.0f, g_theme.border);
+    fill_rect(0.0f, 0.0f, TOP_W, HEADER_H, g_theme.card);
+    fill_rect(0.0f, HEADER_H - 1.0f, TOP_W, 1.0f, g_theme.border);
 
     draw_icon_natural(ICON_LOGO, 8.0f, 6.0f, 22.0f);
     text_at(APP_TITLE, 36.0f, 4.0f, 0.6f, g_theme.fg);
@@ -314,12 +281,19 @@ static void draw_header(const char *right_label)
             text_right(right_label, TOP_W - 10.0f, 12.0f, 0.38f, g_theme.muted_fg);
         }
     }
+
+    if (g_app.battery_percent >= 0) {
+        draw_icon_natural(ICON_BATTERY, bat_x, 8.0f, 16.0f);
+        snprintf(status_line, sizeof(status_line), "%d%%", g_app.battery_percent);
+        text_right(status_line, TOP_W - 48.0f, 9.0f, 0.36f, g_theme.muted_fg);
+    }
+    draw_icon_natural(ICON_WIFI, wifi_x, 8.0f, 16.0f);
 }
 
 static void draw_bottom_hint(const char *hint)
 {
-    C2D_DrawRectSolid(0.0f, BOT_H - 22.0f, 0.8f, BOT_W, 22.0f, g_theme.card);
-    C2D_DrawRectSolid(0.0f, BOT_H - 22.0f, 0.8f, BOT_W, 1.0f, g_theme.border);
+    fill_rect(0.0f, BOT_H - 22.0f, BOT_W, 22.0f, g_theme.card);
+    fill_rect(0.0f, BOT_H - 22.0f, BOT_W, 1.0f, g_theme.border);
     text_at(hint, 8.0f, BOT_H - 18.0f, 0.36f, g_theme.muted_fg);
 }
 
@@ -346,10 +320,6 @@ static bool game_has_rom(const Game *g)
     return false;
 }
 
-// ---------------------------------------------------------------------------
-// Écrans
-// ---------------------------------------------------------------------------
-
 void ui_draw_loading(const char *label, float frac)
 {
     C2D_SceneBegin(s_top);
@@ -371,7 +341,6 @@ void ui_draw_list(void)
     int   i;
     float y;
 
-    // --- Écran supérieur : liste ---
     C2D_SceneBegin(s_top);
 
     if (g_app.search[0] != '\0') {
@@ -420,11 +389,10 @@ void ui_draw_list(void)
         float ratio = (float)g_app.filter_count / 4.0f;
         float thumb_h = track_h / ratio;
         float thumb_y = HEADER_H + 6.0f + (track_h - thumb_h) * ((float)g_app.scroll / (float)(g_app.filter_count - 4));
-        C2D_DrawRectSolid(TOP_W - 3.0f, HEADER_H + 6.0f, 0.8f, 2.0f, track_h, g_theme.muted);
-        fill_round(TOP_W - 3.0f, thumb_y, 2.0f, thumb_h, 1.0f, g_theme.muted_fg);
+        fill_rect(TOP_W - 3.0f, HEADER_H + 6.0f, 2.0f, track_h, g_theme.muted);
+        fill_rect(TOP_W - 3.0f, thumb_y, 2.0f, thumb_h, g_theme.muted_fg);
     }
 
-    // --- Écran inférieur : détail ---
     C2D_SceneBegin(s_bottom);
 
     {
@@ -511,6 +479,7 @@ void ui_draw_settings(int cursor)
 void ui_draw_task(const char *label, float frac)
 {
     char percent[32];
+    char speed_str[64];
 
     C2D_SceneBegin(s_top);
     draw_header("");
@@ -518,7 +487,14 @@ void ui_draw_task(const char *label, float frac)
     text_center(label != NULL ? label : "", TOP_W / 2.0f, 104.0f, 0.48f, g_theme.muted_fg);
     draw_progress(TOP_W / 2.0f - 120.0f, 132.0f, 240.0f, 12.0f, frac);
     snprintf(percent, sizeof(percent), "%d %%", (int)(frac * 100.0f));
-    text_center(frac >= 0.0f ? percent : "\u2026", TOP_W / 2.0f, 152.0f, 0.45f, g_theme.muted_fg);
+    text_center(frac >= 0.0f ? percent : "...", TOP_W / 2.0f, 152.0f, 0.45f, g_theme.muted_fg);
+
+    if (g_app.download_speed > 0) {
+        snprintf(speed_str, sizeof(speed_str), "%.2f MB/s  ETA: %ds",
+                 g_app.download_speed / (1024.0f * 1024.0f),
+                 (int)(g_app.download_eta));
+        text_center(speed_str, TOP_W / 2.0f, 172.0f, 0.4f, g_theme.muted_fg);
+    }
 
     C2D_SceneBegin(s_bottom);
     draw_bottom_hint(tr("task.cancel"));

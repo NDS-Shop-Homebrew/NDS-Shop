@@ -1,6 +1,3 @@
-// Cadres de l'atlas d'interface embarqué (assets/gfx/ui_gfx.t3s).
-//
-// L'ordre doit rester identique à celui déclaré dans le fichier .t3s.
 #pragma once
 
 enum {
@@ -18,5 +15,7 @@ enum {
     ICON_UP,
     ICON_DOWN,
     ICON_HELP,
+    ICON_BATTERY,
+    ICON_WIFI,
     ICON_COUNT
 };

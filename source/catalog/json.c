@@ -1,5 +1,4 @@
-// Analyseur JSON minimal — adaptation de jsmn (Serge Zaitsev, domaine public).
-#include "json.h"
+#include "catalog/json.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -30,8 +29,8 @@ static int parse_string(JsonParser *p, const char *s, size_t len, JsonTok *toks,
             t->start = start + 1;
             t->end = (int)p->pos;
             t->parent = p->super;
-            // Le guillemet fermant est le dernier caractère consommé : la
-            // boucle principale avancera juste après.
+            // The closing quote is the last consumed character;
+            // the main loop advances right after it.
             return 0;
         }
         if (c == '\\' && p->pos + 1 < len) {
@@ -186,12 +185,10 @@ int json_run(JsonParser *p, const char *s, size_t len, JsonTok *toks, unsigned c
     return count;
 }
 
-// Dernier jeton du sous-arbre commençant à `idx`.
-//
-// Convention jsmn : `size` vaut le nombre de paires pour un objet et le nombre
-// d'éléments pour un tableau. Un objet compte donc 2 x size jetons enfants
-// (clés et valeurs). Le champ `size` d'une clé n'est pas fiable, d'où le test
-// sur le type avant toute descente.
+// Last token of the subtree starting at `idx`.
+// of elements for an array. An object holds 2 * size child tokens
+// (keys and values). A key's `size` cannot be trusted, hence the type test
+// before any descent.
 static int tok_last(const JsonTok *toks, int idx)
 {
     int      i = idx;
@@ -221,7 +218,7 @@ int json_key(const char *s, const JsonTok *toks, int obj, const char *key)
     klen = strlen(key);
     i = obj + 1;
     for (pair = 0; pair < toks[obj].size; pair++) {
-        // Dans un objet, la valeur suit immédiatement sa clé.
+        // In an object the value follows its key.
         if (toks[i].type == JSON_STRING &&
             (size_t)(toks[i].end - toks[i].start) == klen &&
             strncmp(s + toks[i].start, key, klen) == 0) {

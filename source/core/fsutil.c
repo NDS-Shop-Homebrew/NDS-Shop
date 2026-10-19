@@ -1,12 +1,11 @@
-// Utilitaires carte SD et configuration.
-#include "fsutil.h"
+#include "core/fsutil.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
 
-// Longueur de "sdmc:" : racine non créable.
+// Length of the "sdmc:" prefix; this part must not be created.
 #define ROOT_LEN 5
 
 bool fs_mkdir_tree(const char *dir_path)
@@ -99,9 +98,7 @@ char *fs_read_file(const char *path, size_t *out_len)
     return buf;
 }
 
-// ---------------------------------------------------------------------------
-// Configuration (clé=valeur)
-// ---------------------------------------------------------------------------
+// Configuration (key=value)
 
 static void trim_eol(char *s)
 {
@@ -137,7 +134,7 @@ void config_normalize_api(char *api, size_t cap)
     }
     while (n > 0 && api[n - 1] == '/') api[--n] = '\0';
 
-    // Suffixe "/api" ajouté par erreur : le contrat est déjà préfixé.
+    // Strip a redundant "/api" suffix.
     if (n >= 4 && strcmp(api + n - 4, "/api") == 0) {
         n -= 4;
         while (n > 0 && api[n - 1] == '/') api[--n] = '\0';

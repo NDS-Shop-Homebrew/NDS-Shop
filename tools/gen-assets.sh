@@ -22,12 +22,14 @@ T3S="$ROOT/assets/gfx/ui_gfx.t3s"
 FRAMES=(
   logo download settings search back check warning
   cartridge refresh globe moon up down help
+  battery wifi
 )
 
 # Cadres produits depuis les SVG (le logo, lui, vient de app/icon.png).
 SVG_ICONS=(
   download settings search back check warning
   cartridge refresh globe moon up down help
+  battery wifi
 )
 
 command -v rsvg-convert >/dev/null || { echo "rsvg-convert est requis" >&2; exit 1; }

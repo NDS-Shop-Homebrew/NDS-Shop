@@ -1,12 +1,14 @@
-// Chargement du catalogue.
-#include "catalog.h"
-#include "fsutil.h"
-#include "i18n.h"
-#include "json.h"
+#include "catalog/catalog.h"
+#include "core/fsutil.h"
+#include "core/i18n.h"
+#include "catalog/json.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include "core/app.h"
+#include "net/net.h"
 
 #define TOKENS_START 32768u
 #define TOKENS_MAX   (1u << 22)
@@ -217,7 +219,6 @@ bool catalog_load(Catalog *cat, ProgressFn cb, void *user)
         return true;
     }
 
-    // Repli : copie locale mise en cache lors d'une session précédente.
     {
         char *cached = fs_read_file(APP_CACHE_PATH, NULL);
         bool  ok;

@@ -1,10 +1,11 @@
-// Atlas d'icônes de la boutique : cache SD + chargement.
-#include "atlas.h"
-#include "fsutil.h"
-#include "net.h"
+#include "catalog/atlas.h"
+#include "core/fsutil.h"
+#include "net/net.h"
 
 #include <stdlib.h>
 #include <string.h>
+
+#include "core/app.h"
 
 static C2D_SpriteSheet s_sheet = NULL;
 static char            s_url[1024];
@@ -42,7 +43,6 @@ void atlas_free(void)
     s_url[0] = '\0';
 }
 
-// Retire les espaces et sauts de ligne d'une chaîne lue sur la SD.
 static void trim(char *s)
 {
     size_t n;

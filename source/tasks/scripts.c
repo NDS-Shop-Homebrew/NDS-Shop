@@ -1,23 +1,23 @@
-// Exécution des actions d'installation.
-#include "scripts.h"
-#include "cia.h"
-#include "fsutil.h"
-#include "i18n.h"
-#include "net.h"
+#include "tasks/scripts.h"
+#include "tasks/cia.h"
+#include "core/fsutil.h"
+#include "core/i18n.h"
+#include "net/net.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
+#include "core/app.h"
+
 struct Task {
     ProgressFn cb;
     void      *user;
-    float      base;   // progression au début de l'étape
-    float      span;   // part de l'étape
+    float      base;
+    float      span;
     const char *label;
 };
 
-// Chemin SD absolu ("sdmc:/...").
 static const char *sd_of(char *out, size_t cap, const char *path)
 {
     if (path[0] == '/') snprintf(out, cap, "sdmc:%s", path);
@@ -37,7 +37,6 @@ static void report(struct Task *t, float frac)
     t->cb(t->label, t->base + (frac >= 0.0f ? frac : 0.0f) * t->span, t->user);
 }
 
-// Progression d'un téléchargement : sous-progression dans l'étape courante.
 static void step_progress(const char *label, float frac, void *user)
 {
     struct Task *t = (struct Task *)user;
@@ -45,7 +44,6 @@ static void step_progress(const char *label, float frac, void *user)
     if (t->cb != NULL) t->cb(t->label, t->base + (frac >= 0.0f ? frac : 0.0f) * t->span, t->user);
 }
 
-// Comparaison de suffixe insensible à la casse (".nds", ".cia").
 static bool ends_with_ci(const char *s, const char *suffix)
 {
     size_t     ns = strlen(s);
@@ -62,8 +60,6 @@ static bool ends_with_ci(const char *s, const char *suffix)
     return true;
 }
 
-// Les jaquettes TwiLight Menu ne sont pas critiques : leur échec n'interrompt
-// pas l'installation.
 static bool is_optional(const char *output)
 {
     return strncmp(output, "/_nds/", 5) == 0;
@@ -99,12 +95,9 @@ static bool run_step(const ScriptStep *s, struct Task *task, char *err, size_t e
         return true;
     }
 
-    // Type inconnu : ignoré (le serveur peut en ajouter sans casser l'app).
     return true;
 }
 
-// Repli lorsqu'aucun script n'est fourni : télécharge la ROM puis, si un
-// forwarder .cia est publié, l'installe.
 static bool run_fallback(const Game *g, struct Task *task, char *err, size_t errcap)
 {
     const Download *rom = NULL;

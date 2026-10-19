@@ -1,6 +1,5 @@
-// Accès réseau — libcurl sur le service SOC de la 3DS.
-#include "net.h"
-#include "fsutil.h"
+#include "net/net.h"
+#include "core/fsutil.h"
 
 #include <3ds.h>
 #include <curl/curl.h>
@@ -8,6 +7,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include "core/app.h"
 
 #define HTTP_USER_AGENT "NDS-Shop/" APP_VERSION_STR " (Nintendo 3DS)"
 #define SOC_ALIGN       0x1000
@@ -28,6 +29,11 @@ struct FileSink {
     ProgressFn cb;
     void      *user;
     bool       write_failed;
+    u64        start_tick;
+    u64        last_tick;
+    size_t     last_bytes;
+    float      speed;
+    float      eta;
 };
 
 static void set_error(const char *fmt, const char *arg)
@@ -43,7 +49,7 @@ static void set_error_status(const char *prefix, long status)
 
 const char *net_error(void)
 {
-    return s_error[0] ? s_error : "erreur réseau inconnue";
+    return s_error[0] ? s_error : "unknown network error";
 }
 
 bool net_init(void)
@@ -52,13 +58,13 @@ bool net_init(void)
 
     s_soc_buffer = memalign(SOC_ALIGN, SOC_BUFFERSIZE);
     if (s_soc_buffer == NULL) {
-        set_error("mémoire insuffisante pour le SOC", NULL);
+        set_error("out of memory for SOC", NULL);
         return false;
     }
     if (R_FAILED(socInit((u32 *)s_soc_buffer, SOC_BUFFERSIZE))) {
         free(s_soc_buffer);
         s_soc_buffer = NULL;
-        set_error("socInit() a échoué", NULL);
+        set_error("socInit() failed", NULL);
         return false;
     }
     curl_global_init(CURL_GLOBAL_DEFAULT);
@@ -80,7 +86,7 @@ static CURL *curl_new(const char *url)
 {
     CURL *h = curl_easy_init();
     if (h == NULL) {
-        set_error("curl_easy_init() a échoué", NULL);
+        set_error("curl_easy_init() failed", NULL);
         return NULL;
     }
     curl_easy_setopt(h, CURLOPT_URL, url);
@@ -130,6 +136,24 @@ static int sink_progress(void *userdata, curl_off_t dltotal, curl_off_t dlnow,
     struct FileSink *f = (struct FileSink *)userdata;
     (void)ultotal;
     (void)ulnow;
+
+    u64 now = svcGetSystemTick();
+    float dt = (float)(now - f->last_tick) / (float)16777216.0f;
+
+    if (f->last_tick > 0 && dt > 0.1f) {
+        size_t delta = (size_t)dlnow - f->last_bytes;
+        f->speed = (float)delta / dt;
+        if (dltotal > 0 && f->speed > 0) {
+            f->eta = (float)(dltotal - dlnow) / f->speed;
+        }
+    }
+
+    f->last_tick = now;
+    f->last_bytes = (size_t)dlnow;
+
+    g_app.download_speed = f->speed;
+    g_app.download_eta = f->eta;
+
     if (f->cb != NULL) {
         float frac = -1.0f;
         if (dltotal > 0) frac = (float)((double)dlnow / (double)dltotal);
@@ -169,7 +193,7 @@ bool net_get(const char *url, NetBuf *out)
 
     rc = curl_easy_perform(h);
     if (rc != CURLE_OK) {
-        set_error("requête échouée : %s", curl_easy_strerror(rc));
+        set_error("request failed: %s", curl_easy_strerror(rc));
         curl_easy_cleanup(h);
         free(sink.data);
         return false;
@@ -188,7 +212,7 @@ bool net_get(const char *url, NetBuf *out)
     out->status = status;
 
     if (status < 200 || status >= 300) {
-        set_error_status("le serveur a répondu", status);
+        set_error_status("server responded", status);
         return false;
     }
     return true;
@@ -197,7 +221,7 @@ bool net_get(const char *url, NetBuf *out)
 bool net_download(const char *url, const char *dest, ProgressFn cb, void *user)
 {
     CURL *h;
-    struct FileSink sink;
+    struct FileSink sink = { 0 };
     CURLcode rc;
     long status = 0;
     bool ok = false;
@@ -205,18 +229,23 @@ bool net_download(const char *url, const char *dest, ProgressFn cb, void *user)
     if (!s_ready && !net_init()) return false;
 
     if (!fs_mkdir_parents(dest)) {
-        set_error("impossible de créer le dossier de destination", NULL);
+        set_error("failed to create destination directory", NULL);
         return false;
     }
 
     sink.fp = fopen(dest, "wb");
     if (sink.fp == NULL) {
-        set_error("impossible d'écrire dans %s", dest);
+        set_error("failed to open %s for writing", dest);
         return false;
     }
     sink.cb = cb;
     sink.user = user;
     sink.write_failed = false;
+    sink.start_tick = svcGetSystemTick();
+    sink.last_tick = 0;
+    sink.last_bytes = 0;
+    sink.speed = 0.0f;
+    sink.eta = 0.0f;
 
     h = curl_new(url);
     if (h == NULL) {
@@ -232,13 +261,13 @@ bool net_download(const char *url, const char *dest, ProgressFn cb, void *user)
 
     rc = curl_easy_perform(h);
     if (rc != CURLE_OK) {
-        set_error("téléchargement échoué : %s", curl_easy_strerror(rc));
+        set_error("download failed: %s", curl_easy_strerror(rc));
     } else {
         curl_easy_getinfo(h, CURLINFO_RESPONSE_CODE, &status);
         if (status < 200 || status >= 300) {
-            set_error_status("le serveur a répondu", status);
+            set_error_status("server responded", status);
         } else if (sink.write_failed) {
-            set_error("écriture incomplète sur la carte SD", NULL);
+            set_error("incomplete write to SD card", NULL);
         } else {
             ok = true;
         }

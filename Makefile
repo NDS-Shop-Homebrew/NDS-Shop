@@ -21,9 +21,9 @@ include $(DEVKITARM)/3ds_rules
 #---------------------------------------------------------------------------------
 TARGET		:=	NDS-Shop
 BUILD		:=	build
-SOURCES		:=	source
+SOURCES		:=	source/core source/ui source/catalog source/net source/tasks
 DATA		:=	data
-INCLUDES	:=	source
+INCLUDES	:=	include include/core include/ui include/catalog include/net include/tasks
 GRAPHICS	:=	assets/gfx
 GFXBUILD	:=	$(BUILD)
 
@@ -176,15 +176,15 @@ endif
 .PHONY: all cia 3dsx clean
 
 #---------------------------------------------------------------------------------
-all: $(BUILD) $(GFXBUILD) $(DEPSDIR) $(ROMFS_T3XFILES) $(T3XHFILES)
+all: | $(BUILD) $(GFXBUILD) $(ROMFS_T3XFILES) $(T3XHFILES)
 	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile all
 
 #---------------------------------------------------------------------------------
-3dsx: $(BUILD) $(GFXBUILD) $(DEPSDIR) $(ROMFS_T3XFILES) $(T3XHFILES)
+3dsx: | $(BUILD) $(GFXBUILD) $(ROMFS_T3XFILES) $(T3XHFILES)
 	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile 3dsx
 
 #---------------------------------------------------------------------------------
-cia: $(BUILD) $(GFXBUILD) $(DEPSDIR) $(ROMFS_T3XFILES) $(T3XHFILES)
+cia: | $(BUILD) $(GFXBUILD) $(ROMFS_T3XFILES) $(T3XHFILES)
 	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile cia
 
 #---------------------------------------------------------------------------------
