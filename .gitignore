@@ -17,3 +17,4 @@ makerom*
 
 # Tests hôtes
 tests/host/test_catalog
+tests/host/test_fsutil

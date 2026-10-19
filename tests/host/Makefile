@@ -1,22 +1,27 @@
-# Tests hôtes (parseur de catalogue, sans réseau ni 3DS).
+# Tests hôtes (parseur de catalogue, configuration, sans réseau ni 3DS).
 #
 #   make -C tests/host
+#
+# gnu11 : même famille que le standard implicite de devkitARM, dont la libc
+# fournit strtok_r() utilisée par la couche configuration.
 CC      ?= cc
-CFLAGS  ?= -std=c11 -Wall -Wextra -Werror -O1 -g
+CFLAGS  ?= -std=gnu11 -Wall -Wextra -Werror -O1 -g
 CPPFLAGS := -I../../source
 
-BIN     := test_catalog
-SRC     := ../../source/json.c ../../source/catalog.c test_catalog.c
+BINS    := test_catalog test_fsutil
 
 all: run
 
-$(BIN): $(SRC)
-	$(CC) $(CPPFLAGS) $(CFLAGS) -o $@ $(SRC)
+test_catalog: ../../source/json.c ../../source/catalog.c test_catalog.c
+	$(CC) $(CPPFLAGS) $(CFLAGS) -o $@ $^
 
-run: $(BIN)
-	./$(BIN)
+test_fsutil: ../../source/fsutil.c test_fsutil.c
+	$(CC) $(CPPFLAGS) $(CFLAGS) -o $@ $^
+
+run: $(BINS)
+	@set -e; for t in $(BINS); do echo "== $$t =="; ./$$t; done
 
 clean:
-	rm -f $(BIN)
+	rm -f $(BINS)
 
 .PHONY: all run clean
