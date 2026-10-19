@@ -34,6 +34,7 @@ ICON		:=	app/icon.png
 BNR_IMAGE	:=	app/banner.png
 BNR_AUDIO	:=	app/BannerAudio.wav
 RSF_FILE	:=	app/build-cia.rsf
+LOGO		:=	app/logo.bcma.lz
 
 #---------------------------------------------------------------------------------
 # Version : dernier tag git (vX.Y.Z), sinon 1.0.0.
@@ -227,8 +228,8 @@ $(OUTPUT).cia	:	$(OUTPUT).elf $(OUTPUT).smdh
 	@$(BANNERTOOL) makebanner -i "../$(BNR_IMAGE)" -a "../$(BNR_AUDIO)" -o "banner.bin"
 	@$(BANNERTOOL) makesmdh -i "../$(ICON)" -s "$(APP_TITLE)" -l "$(APP_DESCRIPTION)" -p "$(APP_AUTHOR)" -o "icon.bin" \
 		--flags visible,ratingrequired,recordusage --cero 153 --esrb 153 --usk 153 --pegigen 153 --pegiptr 153 --pegibbfc 153 --cob 153 --grb 153 --cgsrr 153
-	@$(MAKEROM) -f cia -target t -o "../$(TARGET).cia" -elf "../$(TARGET).elf" -rsf "../$(RSF_FILE)" \
-		-banner "banner.bin" -icon "icon.bin" \
+	@$(MAKEROM) -f cia -target t -exefslogo -o "../$(TARGET).cia" -elf "../$(TARGET).elf" -rsf "../$(RSF_FILE)" \
+		-banner "banner.bin" -icon "icon.bin" -logo "../$(LOGO)" \
 		-major $(VMAJOR) -minor $(VMINOR) -micro $(VMICRO) -DAPP_VERSION_MAJOR="$(VMAJOR)"
 
 #---------------------------------------------------------------------------------
