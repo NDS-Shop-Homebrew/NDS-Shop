@@ -76,11 +76,19 @@ make clean
 La version intégrée à l'application provient du dernier tag git (`vX.Y.Z`) ;
 à défaut, `1.0.0` est utilisé.
 
-Les visuels (icônes d'interface, bannière, icône de titre) sont générés depuis
-les sources SVG :
+### Visuels
+
+Les visuels de la distribution (bannière, icône de titre, logo d'en-tête,
+audio du bandeau) sont les fichiers officiels conservés dans `app/` :
+`banner.png`, `icon.png`, `logo.bcma.lz` et `BannerAudio.wav`. Ils ne sont
+jamais regénérés, seulement repris tels quels par `make cia`.
+
+L'atlas d'icônes de l'interface se régénère depuis les sources SVG
+(`tools/icons/*.svg`) ; le cadre du logo est une copie de `app/icon.png`, afin
+que le logo affiché dans l'application soit exactement l'icône de la boutique :
 
 ```sh
-tools/gen-assets.sh   # rsvg-convert + python3
+tools/gen-assets.sh   # rsvg-convert
 ```
 
 ### Tests
