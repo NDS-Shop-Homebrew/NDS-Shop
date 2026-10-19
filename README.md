@@ -63,9 +63,31 @@ Les fichiers téléchargés sont rangés dans :
 
 ## Compilation
 
-Prérequis : [devkitPro](https://devkitpro.org/) avec `devkitARM`, `libctru` et
-`citro2d` (les paquets `3ds-dev` et `3ds-portlibs` fournissent aussi libcurl et
-mbedtls).
+Prérequis : [devkitPro](https://devkitpro.org/) avec `devkitARM`, `libctru`,
+`citro2d` **et les portlibs 3DS**. Sans ces dernières, la compilation s'arrête
+sur `fatal error: curl/curl.h: No such file or directory`.
+
+Avec le dépôt `dkp-libs` configuré (Arch Linux) :
+
+```sh
+sudo pacman -S --needed devkitARM libctru citro2d citro3d \
+                        3ds-curl 3ds-mbedtls 3ds-zlib
+```
+
+Avec l'installeur devkitPro (`dkp-pacman`) :
+
+```sh
+sudo dkp-pacman -S 3ds-dev 3ds-portlibs
+```
+
+Sans rien installer, l'image officielle `devkitpro/devkitarm` contient déjà tout
+(c'est celle de la CI) :
+
+```sh
+docker run --rm -v "$PWD:/app" -w /app devkitpro/devkitarm make
+```
+
+Ensuite :
 
 ```sh
 make        # NDS-Shop.3dsx
