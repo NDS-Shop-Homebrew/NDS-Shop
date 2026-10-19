@@ -85,11 +85,14 @@ tools/gen-assets.sh   # rsvg-convert + python3
 
 ### Tests
 
-Le parseur de catalogue se teste sans console :
+Le parseur de catalogue et la configuration se testent sans console :
 
 ```sh
 make -C tests/host
 ```
+
+La recette sur console (installation, catalogue, raccourcis de jeux) est décrite
+dans [docs/TEST-3DS.md](docs/TEST-3DS.md).
 
 ## Organisation du code
 

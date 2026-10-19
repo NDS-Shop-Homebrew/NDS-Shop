@@ -117,6 +117,36 @@ static void copy_str(char *dst, size_t cap, const char *src)
     snprintf(dst, cap, "%s", src != NULL ? src : "");
 }
 
+void config_normalize_api(char *api, size_t cap)
+{
+    size_t n;
+    size_t start = 0;
+
+    if (api == NULL || cap == 0) return;
+
+    while (api[start] == ' '  || api[start] == '\t' ||
+           api[start] == '\r' || api[start] == '\n') {
+        start++;
+    }
+    if (start > 0) memmove(api, api + start, strlen(api + start) + 1);
+
+    n = strlen(api);
+    while (n > 0 && (api[n - 1] == ' '  || api[n - 1] == '\t' ||
+                     api[n - 1] == '\r' || api[n - 1] == '\n')) {
+        api[--n] = '\0';
+    }
+    while (n > 0 && api[n - 1] == '/') api[--n] = '\0';
+
+    // Suffixe "/api" ajouté par erreur : le contrat est déjà préfixé.
+    if (n >= 4 && strcmp(api + n - 4, "/api") == 0) {
+        n -= 4;
+        while (n > 0 && api[n - 1] == '/') api[--n] = '\0';
+        api[n] = '\0';
+    }
+
+    if (n == 0) copy_str(api, cap, APP_API_DEFAULT);
+}
+
 void config_load(Config *cfg)
 {
     char *text;
@@ -147,12 +177,7 @@ void config_load(Config *cfg)
     }
     free(text);
 
-    // Retire un éventuel '/' final et un "/api" redondant.
-    {
-        size_t n = strlen(cfg->api_base);
-        while (n > 0 && cfg->api_base[n - 1] == '/') cfg->api_base[--n] = '\0';
-        if (n == 0) copy_str(cfg->api_base, sizeof(cfg->api_base), APP_API_DEFAULT);
-    }
+    config_normalize_api(cfg->api_base, sizeof(cfg->api_base));
 }
 
 bool config_save(const Config *cfg)
