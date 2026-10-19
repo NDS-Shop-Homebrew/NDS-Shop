@@ -202,6 +202,18 @@ static void draw_icon(int index, float x, float y, float size, u32 color)
                     size / (float)img.subtex->width, size / (float)img.subtex->height);
 }
 
+// Comme draw_icon(), mais sans teinte : réservé aux visuels en couleurs
+// (l'icône officielle de la boutique), que le thème ne doit pas recolorer.
+static void draw_icon_natural(int index, float x, float y, float size)
+{
+    C2D_Image img;
+    if (s_ui == NULL) return;
+    if (index < 0 || (size_t)index >= C2D_SpriteSheetCount(s_ui)) return;
+    img = C2D_SpriteSheetGetImage(s_ui, (size_t)index);
+    C2D_DrawImageAt(img, x, y, 0.5f, NULL,
+                    size / (float)img.subtex->width, size / (float)img.subtex->height);
+}
+
 static void draw_game_icon(int icon_index, float x, float y, float size)
 {
     C2D_Image img;
@@ -284,7 +296,7 @@ static void draw_header(const char *right_label)
     C2D_DrawRectSolid(0.0f, 0.0f, 0.8f, TOP_W, HEADER_H, g_theme.card);
     C2D_DrawRectSolid(0.0f, HEADER_H - 1.0f, 0.8f, TOP_W, 1.0f, g_theme.border);
 
-    draw_icon(ICON_LOGO, 8.0f, 6.0f, 22.0f, g_theme.primary);
+    draw_icon_natural(ICON_LOGO, 8.0f, 6.0f, 22.0f);
     text_at(APP_TITLE, 36.0f, 4.0f, 0.6f, g_theme.fg);
 
     if (g_app.catalog.store.title[0] != '\0') {
@@ -341,7 +353,7 @@ static bool game_has_rom(const Game *g)
 void ui_draw_loading(const char *label, float frac)
 {
     C2D_SceneBegin(s_top);
-    draw_icon(ICON_LOGO, TOP_W / 2.0f - 26.0f, 48.0f, 52.0f, g_theme.primary);
+    draw_icon_natural(ICON_LOGO, TOP_W / 2.0f - 24.0f, 48.0f, 48.0f);
     text_center(APP_TITLE, TOP_W / 2.0f, 110.0f, 0.85f, g_theme.fg);
     text_center(tr("app.tagline"), TOP_W / 2.0f, 132.0f, 0.45f, g_theme.muted_fg);
     text_center(label != NULL ? label : "", TOP_W / 2.0f, 168.0f, 0.45f, g_theme.muted_fg);
