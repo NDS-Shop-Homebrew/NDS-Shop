@@ -1,34 +1,40 @@
-# NDS-Shop (3DS) v1.2.0
+# NDS-Shop (3DS) v1.0.0
 
-## Nouvelles fonctionnalités
+Réécriture complète de l'application 3DS : une base C neuve (libctru,
+citro2d, libcurl), sans aucune dépendance à l'ancienne base de code.
 
-- **Mise à jour tout** — met à jour tous les jeux installés en une action.
-- **Sauvegarde et restauration des réglages** — exporte/importe ta configuration et tes favoris.
-- **Détection automatique des jeux installés** — les jeux déjà présents sur la carte SD sont détectés et marqués.
-- **Tri par taille et par date de mise à jour** + filtre des jeux installés.
-- **QR Code dynamique** — lien direct vers le téléchargement.
-- **Versioning automatique** — version extraite des tags git à la compilation.
-- **Screenshots** — captures d'écran 3DS ajoutées dans le README.
-- **Support FR** — accents corrigés, langue française fonctionnelle.
+## Catalogue
 
-## Corrections
+- Catalogue paginé servi par l'API (`/api/v1/catalog`), révision en secondes.
+- Cache local du catalogue : l'application reste utilisable hors-ligne.
+- Recherche par titre ou par auteur.
+- Atlas d'icônes téléchargé depuis l'API et mis en cache sur la carte SD.
 
-- **Crash au démarrage sur console réelle corrigé** : la vérification de mise à jour au lancement est désactivée pour l'instant (le parsing de la réponse GitHub dépassait la pile de la console).
-- **Chargement des thèmes** : validation des couleurs réécrite sans regex (stabilité accrue au boot).
-- **Installation CIA fiabilisée** : correction d'un bug qui écrivait trop de données en fin de fichier (CIA corrompus / installs qui échouaient).
-- **Espace SD insuffisant** : l'installation affiche maintenant une erreur au lieu d'un faux succès.
-- **File de téléchargement** : une installation échouée est signalée comme telle (au lieu d'être marquée « terminée »).
-- **Scanner QR** : correction d'un plantage possible à la fermeture (threads non joints).
-- **Extraction d'archives** : blocage des chemins malveillants (`../`) pouvant écrire n'importe où sur la SD.
-- **Screenshots** : plantage évité lorsqu'une image est corrompue.
-- **Stabilité JSON** : plantage évité si la configuration ou les favoris sont édités avec de mauvais types.
+## Installation des jeux
 
-## CI / Release
+- Téléchargement de la ROM sur la carte SD (`sdmc:/roms/nds/`).
+- Installation du forwarder `.cia` par le service AM de la console.
+- Exécution des actions fournies par le catalogue (`downloadFile`,
+  `installCia`, `deleteFile`), avec repli automatique lorsque le catalogue
+  n'en publie aucune.
+- Progression affichée pendant le téléchargement et l'installation, annulation
+  possible avec **B**.
 
-- Build automatisé 3DS sur chaque tag `v*`.
-- Publication automatique de la release (`.cia` + `.3dsx`).
+## Interface
 
-## Crédits
+- Interface entièrement maison, cohérente avec le site (fond clair, accent
+  bleu, cartes à coins arrondis).
+- Écrans : liste des jeux, détail, recherche, réglages, aide, progression,
+  erreurs.
+- Thème clair ou sombre.
+- Français et anglais.
+- Adresse d'API configurable depuis l'application ou via
+  `sdmc:/3ds/NDS-Shop/config.txt`.
 
-Basé sur [Universal-Updater](https://github.com/Universal-Team/Universal-Updater) par Universal-Team.
-Base de données : [UDB-Kekatsu-DS](https://github.com/cavv-dev/UDB-Kekatsu-DS).
+## Technique
+
+- Périmètre limité aux jeux **Nintendo DS**.
+- Visuels générés depuis des sources SVG (`tools/gen-assets.sh`).
+- Tests du parseur de catalogue exécutables sur machine hôte
+  (`make -C tests/host`).
+- Intégration continue : tests, `.3dsx`, `.cia`, publication sur tag `v*`.
