@@ -1,9 +1,9 @@
-// Tests hôtes : normalisation de l'adresse d'API (couche config, sans 3DS).
+// Host tests: API address normalization (config layer, no 3DS).
 //
 //   make -C tests/host
 //
-// L'adresse saisie dans les réglages est enregistrée telle quelle puis utilisée
-// immédiatement : elle doit donc être normalisée au moment de la saisie, et pas
+// The address typed in settings is stored as-is and then used
+// immediately: it must be normalized at input time, not
 // seulement au chargement du fichier de configuration.
 #include <stdio.h>
 #include <string.h>
@@ -22,7 +22,7 @@ static void check(const char *input, const char *want)
     snprintf(buf, sizeof(buf), "%s", input);
     config_normalize_api(buf, sizeof(buf));
     if (strcmp(buf, want) != 0) {
-        printf("  ECHEC : \"%s\" -> \"%s\" (attendu \"%s\")\n", input, buf, want);
+        printf("  FAIL: \"%s\" -> \"%s\" (attendu \"%s\")\n", input, buf, want);
         failures++;
     } else {
         printf("  ok    : \"%s\" -> \"%s\"\n", input, buf);
@@ -31,7 +31,7 @@ static void check(const char *input, const char *want)
 
 int main(void)
 {
-    printf("normalisation de l'adresse d'API :\n");
+    printf("API address normalization:\n");
 
     check("https://db-nds-shop.fr", "https://db-nds-shop.fr");
     check("https://db-nds-shop.fr/", "https://db-nds-shop.fr");
@@ -43,18 +43,18 @@ int main(void)
     check("http://127.0.0.1:3000", "http://127.0.0.1:3000");
     check("http://127.0.0.1:3000/api", "http://127.0.0.1:3000");
 
-    // Un chemin qui se termine autrement ne doit pas être tronqué.
+    // A path ending differently must not be truncated.
     check("https://x.example/api/v2", "https://x.example/api/v2");
     check("https://x.example/apis", "https://x.example/apis");
 
-    // Valeur vide après nettoyage : retour au défaut compilé.
+    // Empty value after cleanup: fall back to the compiled default.
     check("", APP_API_DEFAULT);
     check("///", APP_API_DEFAULT);
 
     if (failures == 0) {
-        printf("\nOK : adresse d'API normalisée.\n");
+        printf("\nOK: API address normalized.\n");
         return 0;
     }
-    printf("\n%d test(s) en échec.\n", failures);
+    printf("\n%d test(s) failed.\n", failures);
     return 1;
 }

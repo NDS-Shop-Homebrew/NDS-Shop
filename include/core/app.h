@@ -104,7 +104,8 @@ typedef struct {
     volatile bool cancel;
 
     int battery_percent;
-    int wifi_strength;
+    bool battery_charging;
+    int wifi_bars;      // -1 = disconnected, 0..3 = signal strength
     float download_speed;
     float download_eta;
 } AppState;

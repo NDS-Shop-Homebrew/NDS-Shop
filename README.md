@@ -1,113 +1,114 @@
 # NDS-Shop (Nintendo 3DS)
 
-Application homebrew pour Nintendo 3DS qui installe des jeux **Nintendo DS**
-depuis le catalogue de [NDS-Shop](https://db-nds-shop.fr).
+Homebrew application for Nintendo 3DS that installs **Nintendo DS** games from
+the [NDS-Shop](https://db-nds-shop.fr) catalog.
 
-L'application télécharge la ROM sur la carte SD, puis installe un **raccourci**
-(forwarder `.cia`) sur le menu d'accueil : le jeu se lance ensuite comme
-n'importe quel titre installé.
+The app downloads the ROM to the SD card, then installs a **shortcut**
+(forwarder `.cia`) on the HOME menu: the game then launches like any installed
+title.
 
-Le périmètre est volontairement limité aux **jeux Nintendo DS**. Aucun contenu
-3DS, GBA ou DSi n'est distribué.
+Scope is deliberately limited to **Nintendo DS games**. No 3DS, GBA or DSi
+content is distributed.
 
-## Fonctionnalités
+## Features
 
-- Catalogue paginé récupéré depuis l'API (`/api/v1/catalog`), avec cache local
-  pour un usage hors-ligne.
-- Recherche par titre ou auteur.
-- Installation en un geste : téléchargement de la ROM, installation du
-  forwarder, nettoyage des fichiers temporaires.
-- Atlas d'icônes téléchargé depuis l'API (aucune icône de jeu embarquée).
-- Thème clair/sombre et interface en français ou en anglais.
-- Adresse d'API configurable, pour pointer vers une autre instance du
-  catalogue.
+- Paginated catalog fetched from the API (`/api/v1/catalog`), with a local
+  cache for offline use.
+- Search by title or author.
+- One-press install: ROM download, forwarder installation, temporary file
+  cleanup.
+- Icon atlas downloaded from the API (no game icons embedded).
+- Live battery and Wi-Fi signal indicators in the header.
+- Real-time download telemetry (speed and ETA) during installation.
+- Light/dark theme and an English or French interface.
+- Configurable API address, to point at another instance of the catalog.
 
 ## Installation
 
-1. Télécharger `NDS-Shop.cia` depuis les [versions](../../releases) et
-   l'installer avec un gestionnaire de titres.
-2. Ou bien copier `NDS-Shop.3dsx` dans `sdmc:/3ds/` et le lancer depuis
-   l'explorateur homebrew.
+1. Download `NDS-Shop.cia` from the [releases](../../releases) page and
+   install it with a title manager.
+2. Or copy `NDS-Shop.3dsx` to `sdmc:/3ds/` and launch it from the homebrew
+   launcher.
 
-Un custom firmware récent est nécessaire (installation de titres non signés).
+A recent custom firmware is required (installing unsigned titles).
 
-## Utilisation
+## Usage
 
-| Commande | Action |
+| Button | Action |
 | --- | --- |
-| Croix directionnelle | Parcourir la liste |
-| A | Installer le jeu sélectionné |
-| X | Rechercher |
-| Y | Réglages |
-| SELECT | Aide |
-| L / R | Faire défiler la description |
-| B | Retour / annuler une installation |
-| START | Quitter |
+| D-pad | Browse the list |
+| A | Install the selected game |
+| X | Search |
+| Y | Settings |
+| SELECT | Help |
+| L / R | Scroll the description |
+| B | Back / cancel an install |
+| START | Quit |
 
 ## Configuration
 
-Le fichier `sdmc:/3ds/NDS-Shop/config.txt` est créé au premier lancement :
+The file `sdmc:/3ds/NDS-Shop/config.txt` is created on first launch:
 
 ```ini
-# Configuration NDS-Shop
+# NDS-Shop configuration
 api=https://api.db-nds-shop.fr
-lang=fr
+lang=en
 theme=light
 ```
 
-L'adresse de l'API se modifie aussi depuis l'écran Réglages (bouton **Y**).
-Les fichiers téléchargés sont rangés dans :
+The API address can also be changed from the Settings screen (**Y** button).
+Downloaded files are stored in:
 
-- `sdmc:/3ds/NDS-Shop/` : configuration, cache du catalogue, atlas d'icônes ;
-- `sdmc:/roms/nds/` : ROM Nintendo DS.
+- `sdmc:/3ds/NDS-Shop/`: configuration, catalog cache, icon atlas;
+- `sdmc:/roms/nds/`: Nintendo DS ROMs.
 
-## Compilation
+## Building
 
-Prérequis : [devkitPro](https://devkitpro.org/) avec `devkitARM`, `libctru`,
-`citro2d` **et les portlibs 3DS**. Sans ces dernières, la compilation s'arrête
-sur `fatal error: curl/curl.h: No such file or directory`.
+Requirements: [devkitPro](https://devkitpro.org/) with `devkitARM`, `libctru`,
+`citro2d` **and the 3DS portlibs**. Without the portlibs, the build stops with
+`fatal error: curl/curl.h: No such file or directory`.
 
-Avec le dépôt `dkp-libs` configuré (Arch Linux) :
+With the `dkp-libs` repository configured (Arch Linux):
 
 ```sh
 sudo pacman -S --needed devkitARM libctru citro2d citro3d \
                         3ds-curl 3ds-mbedtls 3ds-zlib
 ```
 
-Avec l'installeur devkitPro (`dkp-pacman`) :
+With the devkitPro installer (`dkp-pacman`):
 
 ```sh
 sudo dkp-pacman -S 3ds-dev 3ds-portlibs
 ```
 
-Sans rien installer, l'image officielle `devkitpro/devkitarm` contient déjà tout
-(c'est celle de la CI) :
+Without installing anything, the official `devkitpro/devkitarm` image already
+contains everything (it is the one used by CI):
 
 ```sh
 docker run --rm -v "$PWD:/app" -w /app devkitpro/devkitarm make
 ```
 
-Ensuite :
+Then:
 
 ```sh
 make        # NDS-Shop.3dsx
-make cia    # NDS-Shop.cia (nécessite bannertool et makerom)
+make cia    # NDS-Shop.cia (requires bannertool and makerom)
 make clean
 ```
 
-La version intégrée à l'application provient du dernier tag git (`vX.Y.Z`) ;
-à défaut, `1.0.0` est utilisé.
+The version embedded in the app comes from the latest git tag (`vX.Y.Z`);
+otherwise `1.0.0` is used.
 
-### Visuels
+### Visuals
 
-Les visuels de la distribution (bannière, icône de titre, logo d'en-tête,
-audio du bandeau) sont les fichiers officiels conservés dans `app/` :
-`banner.png`, `icon.png`, `logo.bcma.lz` et `BannerAudio.wav`. Ils ne sont
-jamais regénérés, seulement repris tels quels par `make cia`.
+Distribution visuals (banner, title icon, header logo, banner audio) are the
+official files kept in `app/`: `banner.png`, `icon.png`, `logo.bcma.lz` and
+`BannerAudio.wav`. They are never regenerated, only reused as-is by `make cia`.
 
-L'atlas d'icônes de l'interface se régénère depuis les sources SVG
-(`tools/icons/*.svg`) ; le cadre du logo est une copie de `app/icon.png`, afin
-que le logo affiché dans l'application soit exactement l'icône de la boutique :
+The UI icon atlas is regenerated from SVG sources (`tools/icons/*.svg`); the
+logo frame is a copy of `app/icon.png`, so the logo shown in the application is
+exactly the store icon. The battery and Wi-Fi indicator frames live in
+`assets/gfx/thirdparty/`:
 
 ```sh
 tools/gen-assets.sh   # rsvg-convert
@@ -115,33 +116,32 @@ tools/gen-assets.sh   # rsvg-convert
 
 ### Tests
 
-Le parseur de catalogue et la configuration se testent sans console :
+The catalog parser and the configuration layer are testable without a console:
 
 ```sh
 make -C tests/host
 ```
 
-La recette sur console (installation, catalogue, raccourcis de jeux) est décrite
-dans [docs/TEST-3DS.md](docs/TEST-3DS.md).
+The on-console recipe (installation, catalog, game shortcuts) is described in
+[docs/TEST-3DS.md](docs/TEST-3DS.md).
 
-## Organisation du code
+## Code organization
 
-| Dossier | Rôle |
+| Folder | Role |
 | --- | --- |
-| `source/core/` | Boucle principale, carte SD/config, traductions, batterie/Wi-Fi |
-| `source/ui/` | Rendu citro2d (thème, écrans) |
-| `source/catalog/` | Catalogue, JSON, atlas d'icônes (cache SD) |
-| `source/net/` | Requêtes HTTP (libcurl), vitesse de téléchargement |
-| `source/tasks/` | Installation .cia, exécution des actions du catalogue |
+| `source/core/` | Main loop, SD card/config, translations, battery/Wi-Fi |
+| `source/ui/` | citro2d rendering (theme, screens) |
+| `source/catalog/` | Catalog, JSON, icon atlas (SD cache) |
+| `source/net/` | HTTP requests (libcurl), download speed |
+| `source/tasks/` | .cia installation, catalog action runner |
 
-Les en-têtes correspondants sont dans `include/` avec la même arborescence.
+Matching headers live in `include/` with the same layout.
 
-## Périmètre et retrait de contenu
+## Scope and content removal
 
-L'application ne publie aucun contenu : elle consomme un catalogue administré
-par l'équipe de NDS-Shop. Les demandes de retrait sont traitées via la page
-DMCA du site.
+The application publishes no content: it consumes a catalog administered by
+the NDS-Shop team. Takedown requests are handled through the site's DMCA page.
 
-## Licence
+## License
 
-GNU General Public License v3.0 — voir [LICENSE](LICENSE).
+GNU General Public License v3.0 — see [LICENSE](LICENSE).

@@ -16,6 +16,11 @@ enum {
     ICON_DOWN,
     ICON_HELP,
     ICON_BATTERY,
-    ICON_WIFI,
+    ICON_BATTERY_CHARGING,
+    ICON_NET_0,
+    ICON_NET_1,
+    ICON_NET_2,
+    ICON_NET_3,
+    ICON_NET_DISCON,
     ICON_COUNT
 };

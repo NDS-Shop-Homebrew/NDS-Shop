@@ -1,8 +1,8 @@
-// Test hôte du parseur de catalogue (sans réseau ni carte SD).
+// Host test for the catalog parser (no network, no SD card).
 //
 //   make -C tests/host
 //
-// Vérifie catalog_parse_page() sur une réponse fidèle à /api/v1/catalog.
+// Checks catalog_parse_page() on a response faithful to /api/v1/catalog.
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -11,7 +11,7 @@
 #include "catalog/json.h"
 
 // --- Doublures --------------------------------------------------------------
-// La couche réseau/SD n'est pas testée ici : catalog.c ne doit pas l'appeler.
+// The network/SD layer is not tested here: catalog.c must not call it.
 AppState g_app;
 
 const char *tr(const char *key) { return key; }
@@ -100,7 +100,7 @@ static int failures = 0;
 static void check(int ok, const char *what)
 {
     if (!ok) {
-        printf("  ECHEC : %s\n", what);
+        printf("  FAIL: %s\n", what);
         failures++;
     }
 }
@@ -108,7 +108,7 @@ static void check(int ok, const char *what)
 static void check_str(const char *got, const char *want, const char *what)
 {
     if (got == NULL || strcmp(got, want) != 0) {
-        printf("  ECHEC : %s (attendu \"%s\", obtenu \"%s\")\n", what, want, got ? got : "(null)");
+        printf("  FAIL: %s (expected \"%s\", got \"%s\")\n", what, want, got ? got : "(null)");
         failures++;
     }
 }
@@ -124,7 +124,7 @@ int main(void)
 
     check(cat.count == 2, "2 jeux");
     check(cat.total == 2, "total = 2");
-    check(cat.revision == 1700000000LL, "révision en secondes");
+    check(cat.revision == 1700000000LL, "revision in seconds");
     check_str(cat.store.title, "NDS-Shop", "titre de la boutique");
     check_str(cat.store.author, "NDS-Shop-Homebrew", "auteur de la boutique");
     if (cat.count >= 1) {
@@ -136,61 +136,61 @@ int main(void)
         check_str(g->title, "Game One", "titre");
         check_str(g->fileName, "game-one", "fileName");
         check_str(g->author, "Studio A", "auteur");
-        check_str(g->developer, "Developpeur A", "développeur");
+        check_str(g->developer, "Developpeur A", "developer");
         check_str(g->version, "1.2", "version");
         check(g->icon_index == 0, "icon_index = 0");
 
-        check(g->download_count == 1, "1 téléchargement");
+        check(g->download_count == 1, "1 download");
         if (g->download_count == 1) {
             check_str(g->downloads[0].filename, "Game One.nds", "nom du fichier");
             check_str(g->downloads[0].url,
-                      "https://api.example/api/v1/download/Game%20One.nds", "url du téléchargement");
+                      "https://api.example/api/v1/download/Game%20One.nds", "download url");
             check_str(g->downloads[0].size_str, "1 Mo", "taille lisible");
         }
 
-        check(g->script_count == 4, "4 étapes de script");
+        check(g->script_count == 4, "4 script steps");
         if (g->script_count == 4) {
-            check_str(g->scripts[0].type, "downloadFile", "étape 0 : type");
-            check_str(g->scripts[0].output, "/roms/nds/Game One.nds", "étape 0 : destination");
-            check_str(g->scripts[1].file, "https://api.example/api/v1/download/0001.cia", "étape 1 : source");
-            check_str(g->scripts[2].type, "installCia", "étape 2 : type");
-            check_str(g->scripts[2].file, "/0001.cia", "étape 2 : chemin");
-            check_str(g->scripts[3].type, "deleteFile", "étape 3 : type");
+            check_str(g->scripts[0].type, "downloadFile", "step 0: type");
+            check_str(g->scripts[0].output, "/roms/nds/Game One.nds", "step 0: destination");
+            check_str(g->scripts[1].file, "https://api.example/api/v1/download/0001.cia", "step 1: source");
+            check_str(g->scripts[2].type, "installCia", "step 2: type");
+            check_str(g->scripts[2].file, "/0001.cia", "step 2: path");
+            check_str(g->scripts[3].type, "deleteFile", "step 3: type");
         }
 
         g = &cat.games[1];
-        check_str(g->title, "Jeu Deux", "titre accentué");
+        check_str(g->title, "Jeu Deux", "accented title");
         check(g->icon_index == 1, "icon_index = 1");
-        check(g->download_count == 0, "aucun téléchargement");
+        check(g->download_count == 0, "no downloads");
         check(g->script_count == 0, "aucun script");
-        check_str(g->description, "Ligne 1\nLigne 2 \xc3\xa9 \"cite\"", "échappements JSON");
+        check_str(g->description, "Ligne 1\nLigne 2 \xc3\xa9 \"cite\"", "JSON escapes");
         check_str(g->version, "", "version absente");
-        check_str(g->systems, "", "tableau JSON ignoré proprement");
+        check_str(g->systems, "", "JSON array skipped cleanly");
     }
 
-    // Pagination : une seconde page s'ajoute au même catalogue.
+    // Pagination: a second page appends to the same catalog.
     printf("pagination\n");
     check(catalog_parse_page(PAGE, &cat), "analyse de la seconde page");
-    check(cat.count == 4, "4 jeux après pagination");
-    check(cat.total == 2, "total inchangé");
+    check(cat.count == 4, "4 games after pagination");
+    check(cat.total == 2, "total unchanged");
     if (cat.count == 4) {
         check_str(cat.games[3].title, "Jeu Deux", "titre du dernier jeu");
     }
 
     catalog_free(&cat);
-    check(cat.count == 0 && cat.games == NULL, "libération du catalogue");
+    check(cat.count == 0 && cat.games == NULL, "catalog freed");
 
-    // JSON invalide / tronqué.
+    // Invalid / truncated JSON.
     printf("robustesse\n");
-    check(!catalog_parse_page("{\"entries\":[}],\"total\":1}", &cat), "JSON invalide rejeté");
-    check(!catalog_parse_page("{\"total\":1}", &cat), "entrées absentes rejetées");
-    check(!catalog_parse_page("", &cat), "corps vide rejeté");
+    check(!catalog_parse_page("{\"entries\":[}],\"total\":1}", &cat), "invalid JSON rejected");
+    check(!catalog_parse_page("{\"total\":1}", &cat), "missing entries rejected");
+    check(!catalog_parse_page("", &cat), "empty body rejected");
     catalog_free(&cat);
 
     if (failures == 0) {
-        printf("\nOK : tous les tests passent.\n");
+        printf("\nOK: all tests pass.\n");
         return 0;
     }
-    printf("\n%d test(s) en échec.\n", failures);
+    printf("\n%d test(s) failed.\n", failures);
     return 1;
 }

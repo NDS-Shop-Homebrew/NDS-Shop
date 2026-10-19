@@ -15,4 +15,9 @@ ui/up.png
 ui/down.png
 ui/help.png
 ui/battery.png
-ui/wifi.png
+ui/battery_charging.png
+ui/net_0.png
+ui/net_1.png
+ui/net_2.png
+ui/net_3.png
+ui/net_discon.png

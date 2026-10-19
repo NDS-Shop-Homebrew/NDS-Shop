@@ -1,8 +1,8 @@
 #---------------------------------------------------------------------------------
-# NDS-Shop — application Nintendo 3DS
+# NDS-Shop — Nintendo 3DS application
 #
-#   make        -> NDS-Shop.3dsx (homebrew, sans installation)
-#   make cia    -> NDS-Shop.cia  (nécessite bannertool + makerom)
+#   make        -> NDS-Shop.3dsx (homebrew, no install)
+#   make cia    -> NDS-Shop.cia  (requires bannertool + makerom)
 #   make clean
 #---------------------------------------------------------------------------------
 .SUFFIXES:
@@ -15,9 +15,9 @@ TOPDIR ?= $(CURDIR)
 include $(DEVKITARM)/3ds_rules
 
 #---------------------------------------------------------------------------------
-# TARGET/BUILD/SOURCES/DATA/INCLUDES/GRAPHICS/GFXBUILD : cf. gabarit devkitARM.
-# GFXBUILD = $(BUILD) => l'atlas d'interface est lié dans le binaire et chargé
-# depuis la mémoire (C2D_SpriteSheetLoadFromMem).
+# TARGET/BUILD/SOURCES/DATA/INCLUDES/GRAPHICS/GFXBUILD : devkitARM template.
+# GFXBUILD = $(BUILD) => the UI atlas is linked into the binary and loaded
+# from memory (C2D_SpriteSheetLoadFromMem).
 #---------------------------------------------------------------------------------
 TARGET		:=	NDS-Shop
 BUILD		:=	build
@@ -29,7 +29,7 @@ GFXBUILD	:=	$(BUILD)
 
 APP_TITLE	:=	NDS-Shop
 APP_AUTHOR	:=	NDS-Shop-Homebrew
-APP_DESCRIPTION	:=	Boutique de jeux Nintendo DS pour Nintendo 3DS
+APP_DESCRIPTION	:=	Nintendo DS game store for Nintendo 3DS
 ICON		:=	app/icon.png
 BNR_IMAGE	:=	app/banner.png
 BNR_AUDIO	:=	app/BannerAudio.wav
@@ -37,7 +37,7 @@ RSF_FILE	:=	app/build-cia.rsf
 LOGO		:=	app/logo.bcma.lz
 
 #---------------------------------------------------------------------------------
-# Version : dernier tag git (vX.Y.Z), sinon 1.0.0.
+# Version: latest git tag (vX.Y.Z), else 1.0.0.
 #---------------------------------------------------------------------------------
 APP_VERSION	:=	$(patsubst v%,%,$(shell git describe --tags --abbrev=0 2>/dev/null))
 ifeq ($(strip $(APP_VERSION)),)
@@ -57,13 +57,13 @@ VMICRO		:=	0
 endif
 
 #---------------------------------------------------------------------------------
-# Outils externes, uniquement pour la cible `cia`.
+# External tools, only used by the `cia` target.
 #---------------------------------------------------------------------------------
 MAKEROM		?=	makerom
 BANNERTOOL	?=	bannertool
 
 #---------------------------------------------------------------------------------
-# Options de génération de code.
+# Code generation options.
 #---------------------------------------------------------------------------------
 ARCH		:=	-march=armv6k -mtune=mpcore -mfloat-abi=hard -mtp=soft
 
@@ -80,7 +80,7 @@ LDFLAGS		=	-specs=3dsx.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 LIBS		:=	-lcurl -lmbedtls -lmbedx509 -lmbedcrypto -lz -lcitro2d -lcitro3d -lctru -lm
 
 #---------------------------------------------------------------------------------
-# Répertoires de bibliothèques (doivent contenir include/ et lib/).
+# Library directories (must contain include/ and lib/).
 #---------------------------------------------------------------------------------
 LIBDIRS		:=	$(PORTLIBS) $(CTRULIB)
 
@@ -106,7 +106,7 @@ GFXFILES	:=	$(foreach dir,$(GRAPHICS),$(notdir $(wildcard $(dir)/*.t3s)))
 BINFILES	:=	$(foreach dir,$(DATA),$(notdir $(wildcard $(dir)/*.*)))
 
 #---------------------------------------------------------------------------------
-# CXX pour les projets C++, CC pour le C.
+# CXX for C++ projects, CC for C.
 #---------------------------------------------------------------------------------
 ifeq ($(strip $(CPPFILES)),)
 #---------------------------------------------------------------------------------
@@ -206,7 +206,7 @@ $(GFXBUILD)/%.t3x	$(BUILD)/%.h	:	%.t3s
 else
 
 #---------------------------------------------------------------------------------
-# Cibles principales (exécutées depuis build/).
+# Main targets (run from build/).
 #---------------------------------------------------------------------------------
 all: 3dsx
 
@@ -221,7 +221,7 @@ $(OFILES_SOURCES) : $(HFILES)
 $(OUTPUT).elf	:	$(OFILES)
 
 #---------------------------------------------------------------------------------
-# Forwarder Cia (installation sur la console).
+# CIA packaging (install on the console).
 #---------------------------------------------------------------------------------
 $(OUTPUT).cia	:	$(OUTPUT).elf $(OUTPUT).smdh
 	@echo $(notdir $@)
@@ -233,7 +233,7 @@ $(OUTPUT).cia	:	$(OUTPUT).elf $(OUTPUT).smdh
 		-major $(VMAJOR) -minor $(VMINOR) -micro $(VMICRO) -DAPP_VERSION_MAJOR="$(VMAJOR)"
 
 #---------------------------------------------------------------------------------
-# Données binaires (un motif par extension embarquée).
+# Binary data (one rule per embedded extension).
 #---------------------------------------------------------------------------------
 %.bin.o	%_bin.h :	%.bin
 #---------------------------------------------------------------------------------

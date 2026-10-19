@@ -14,6 +14,8 @@ typedef struct {
     u32 muted_fg;
     u32 border;
     u32 danger;
+    u32 ok;
+    u32 charging;
 } Theme;
 
 extern Theme g_theme;

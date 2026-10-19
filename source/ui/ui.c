@@ -47,6 +47,8 @@ void theme_apply(bool dark)
         g_theme.muted_fg   = C2D_Color32(0x94, 0xA3, 0xB8, 0xFF);
         g_theme.border     = C2D_Color32(0x33, 0x41, 0x55, 0xFF);
         g_theme.danger     = C2D_Color32(0xEF, 0x44, 0x44, 0xFF);
+        g_theme.ok         = C2D_Color32(0x22, 0xC5, 0x5E, 0xFF);
+        g_theme.charging   = C2D_Color32(0xF5, 0x9E, 0x0B, 0xFF);
     } else {
         g_theme.bg         = C2D_Color32(0xF8, 0xFA, 0xFC, 0xFF);
         g_theme.fg         = C2D_Color32(0x0F, 0x17, 0x2A, 0xFF);
@@ -59,6 +61,8 @@ void theme_apply(bool dark)
         g_theme.muted_fg   = C2D_Color32(0x64, 0x74, 0x8B, 0xFF);
         g_theme.border     = C2D_Color32(0xE2, 0xE8, 0xF0, 0xFF);
         g_theme.danger     = C2D_Color32(0xDC, 0x26, 0x26, 0xFF);
+        g_theme.ok         = C2D_Color32(0x16, 0xA3, 0x4A, 0xFF);
+        g_theme.charging   = C2D_Color32(0xD9, 0x77, 0x06, 0xFF);
     }
 }
 
@@ -253,12 +257,50 @@ static void window(const char *src, int scroll, int span, char *out, size_t cap)
     out[n] = '\0';
 }
 
+static void draw_status_indicators(void)
+{
+    char pct[16];
+    float x = TOP_W - 8.0f;
+    const float y = 9.0f;
+
+    // Wi-Fi: one sprite per strength level, red when disconnected.
+    {
+        int icon;
+        u32 color;
+        if (g_app.wifi_bars < 0)      { icon = ICON_NET_DISCON; color = g_theme.danger; }
+        else if (g_app.wifi_bars == 0){ icon = ICON_NET_0;      color = g_theme.danger; }
+        else if (g_app.wifi_bars == 1){ icon = ICON_NET_1;      color = g_theme.charging; }
+        else                          { icon = (g_app.wifi_bars == 2) ? ICON_NET_2 : ICON_NET_3;
+                                        color = g_theme.ok; }
+        draw_icon(icon, x - 14.0f, y + 2.0f, 14.0f, color);
+        x -= 20.0f;
+    }
+
+    // Battery: outline sprite + charge bars drawn underneath (4 segments).
+    if (g_app.battery_percent >= 0) {
+        snprintf(pct, sizeof(pct), "%d%%", g_app.battery_percent);
+        text_right(pct, x, y + 2.0f, 0.36f, g_theme.muted_fg);
+        x -= text_w(pct, 0.36f) + 6.0f;
+
+        if (g_app.battery_charging) {
+            fill_rect(x - 26.0f + 5.0f, y + 3.0f, 16.0f, 10.0f, g_theme.charging);
+            draw_icon(ICON_BATTERY_CHARGING, x - 26.0f, y + 1.0f, 26.0f, g_theme.fg);
+        } else {
+            int bars = g_app.battery_percent / 25 + 1;
+            float w;
+            u32 color;
+            if (bars > 4) bars = 4;
+            w = bars * 4.0f;
+            color = (bars == 1) ? g_theme.danger : g_theme.ok;
+            fill_rect(x - 26.0f + 5.0f + (20.0f - w), y + 3.0f, w, 10.0f, color);
+            draw_icon(ICON_BATTERY, x - 26.0f, y + 1.0f, 26.0f, g_theme.fg);
+        }
+    }
+}
+
 static void draw_header(const char *right_label)
 {
     char subtitle[192];
-    char status_line[128];
-    int  bat_x = TOP_W - 60.0f;
-    int  wifi_x = TOP_W - 30.0f;
 
     fill_rect(0.0f, 0.0f, TOP_W, HEADER_H, g_theme.card);
     fill_rect(0.0f, HEADER_H - 1.0f, TOP_W, 1.0f, g_theme.border);
@@ -276,18 +318,13 @@ static void draw_header(const char *right_label)
 
     if (right_label != NULL && right_label[0] != '\0') {
         if (g_app.offline) {
-            text_right(tr("loading.offline"), TOP_W - 10.0f, 12.0f, 0.38f, g_theme.danger);
+            text_right(tr("loading.offline"), TOP_W - 10.0f, 20.0f, 0.38f, g_theme.danger);
         } else {
-            text_right(right_label, TOP_W - 10.0f, 12.0f, 0.38f, g_theme.muted_fg);
+            text_right(right_label, TOP_W - 10.0f, 20.0f, 0.38f, g_theme.muted_fg);
         }
     }
 
-    if (g_app.battery_percent >= 0) {
-        draw_icon_natural(ICON_BATTERY, bat_x, 8.0f, 16.0f);
-        snprintf(status_line, sizeof(status_line), "%d%%", g_app.battery_percent);
-        text_right(status_line, TOP_W - 48.0f, 9.0f, 0.36f, g_theme.muted_fg);
-    }
-    draw_icon_natural(ICON_WIFI, wifi_x, 8.0f, 16.0f);
+    draw_status_indicators();
 }
 
 static void draw_bottom_hint(const char *hint)
