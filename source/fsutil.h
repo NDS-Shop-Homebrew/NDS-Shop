@@ -15,5 +15,10 @@ bool  fs_exists(const char *path);
 bool  fs_write_file(const char *path, const void *data, size_t len);
 char *fs_read_file(const char *path, size_t *out_len);  // à libérer with free()
 
+// Normalise une adresse d'API : espaces de fin retirés, '/' final supprimé et
+// suffixe "/api" redondant enlevé (l'application ajoute elle-même "/api/v1/...").
+// Une valeur devenue vide est remplacée par APP_API_DEFAULT.
+void config_normalize_api(char *api, size_t cap);
+
 void config_load(Config *cfg);
 bool config_save(const Config *cfg);

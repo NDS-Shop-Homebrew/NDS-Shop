@@ -226,6 +226,7 @@ static void action_edit_api(void)
     button = swkbdInputText(&swkbd, buf, sizeof(buf));
 
     if (button == SWKBD_BUTTON_CONFIRM && buf[0] != '\0') {
+        config_normalize_api(buf, sizeof(buf));
         snprintf(g_app.config.api_base, sizeof(g_app.config.api_base), "%s", buf);
         config_save(&g_app.config);
         load_catalog();
