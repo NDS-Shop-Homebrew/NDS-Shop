@@ -57,9 +57,9 @@ Rien à créer à la main : l'application crée ses dossiers. Pour repartir d'un
 | 2 | Wi-Fi rétabli, `A` | Écran de chargement, puis liste des jeux : vignettes visibles, pied de page avec le titre de la boutique et le nombre de jeux. L'en-tête affiche le pourcentage de batterie et les barres de signal Wi-Fi. |
 | 3 | Inspecter la carte SD | `sdmc:/3ds/NDS-Shop/` contient `config.txt` et `catalog.json` ; après le chargement des icônes, `atlas.t3x` et `atlas.url`. |
 | 4 | `X`, saisir un titre puis un auteur | La liste se filtre, le compteur suit, `B` efface la recherche. |
-| 5 | `Y` : changer la langue, le thème, puis redémarrer | Les réglages sont conservés (relire `config.txt`). |
+| 5 | `Y` : changer la langue, puis redémarrer | Les réglages sont conservés (relire `config.txt`). |
 | 6 | `Y` : saisir une adresse erronée (`https://exemple.invalid`) | Écran **Erreur** lisible, sans plantage ; une adresse correcte rétablit le catalogue. |
-| 7 | `A` sur un jeu, laisser l'installation finir | Progression affichée (pourcentage), vitesse (Mo/s) et ETA en temps réel pendant le téléchargement, puis message de fin. |
+| 7 | `A` sur un jeu, laisser l'installation finir | Progression affichée (pourcentage), vitesse (Mo/s) et ETA en temps réel pendant le téléchargement, puis question Oui/Non pour le raccourci du menu HOME. Avec **Non**, la ROM est conservée et aucun `.cia` n'est téléchargé. |
 | 8 | Inspecter la carte SD après installation | La ROM est dans `sdmc:/roms/nds/` ; **aucun `.cia` résiduel** sur la carte. |
 | 9 | Revenir au menu d'accueil de la console | Le raccourci du jeu est présent et se lance (jeu Nintendo DS en mode rétrocompatible). |
 | 10 | Relancer une installation puis `B` en cours de téléchargement | La tâche s'arrête, le fichier partiel est supprimé, retour à la liste. |

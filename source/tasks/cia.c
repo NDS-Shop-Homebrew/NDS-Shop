@@ -36,10 +36,12 @@ bool cia_install(const char *sd_path, ProgressFn cb, void *user, char *err, size
 
     archive_path(path_buf, sizeof(path_buf), sd_path);
 
-    rc = FSUSER_OpenFile(&file_handle, ARCHIVE_SDMC, fsMakePath(PATH_ASCII, path_buf),
-                         FS_OPEN_READ, 0);
+    // ARCHIVE_SDMC is an archive *id*, so the file has to be opened directly:
+    // FSUSER_OpenFile() expects a handle and would fail with 0xC8804465.
+    rc = FSUSER_OpenFileDirectly(&file_handle, ARCHIVE_SDMC, fsMakePath(PATH_EMPTY, ""),
+                                 fsMakePath(PATH_ASCII, path_buf), FS_OPEN_READ, 0);
     if (R_FAILED(rc)) {
-        if (err != NULL) snprintf(err, errcap, ".cia file not found (0x%08lX)", (unsigned long)rc);
+        if (err != NULL) snprintf(err, errcap, "cannot open .cia file (0x%08lX)", (unsigned long)rc);
         return false;
     }
     FSFILE_GetSize(file_handle, &total);

@@ -27,50 +27,35 @@
 Theme g_theme;
 
 static C2D_Font          s_font;
-static C2D_TextBuf       s_text;
+static C2D_TextBuf       s_text[2];
+static int               s_text_i;
 static C2D_SpriteSheet   s_ui;
 static C3D_RenderTarget *s_top;
 static C3D_RenderTarget *s_bottom;
 static float             s_char_w = 8.0f;
 
-void theme_apply(bool dark)
+void theme_apply(void)
 {
-    if (dark) {
-        g_theme.bg         = C2D_Color32(0x0F, 0x17, 0x2A, 0xFF);
-        g_theme.fg         = C2D_Color32(0xF1, 0xF5, 0xF9, 0xFF);
-        g_theme.card       = C2D_Color32(0x1E, 0x29, 0x3B, 0xFF);
-        g_theme.primary    = C2D_Color32(0x60, 0xA5, 0xFA, 0xFF);
-        g_theme.primary_fg = C2D_Color32(0x0F, 0x17, 0x2A, 0xFF);
-        g_theme.accent     = C2D_Color32(0x1E, 0x3A, 0x5F, 0xFF);
-        g_theme.accent_fg  = C2D_Color32(0x60, 0xA5, 0xFA, 0xFF);
-        g_theme.muted      = C2D_Color32(0x33, 0x41, 0x55, 0xFF);
-        g_theme.muted_fg   = C2D_Color32(0x94, 0xA3, 0xB8, 0xFF);
-        g_theme.border     = C2D_Color32(0x33, 0x41, 0x55, 0xFF);
-        g_theme.danger     = C2D_Color32(0xEF, 0x44, 0x44, 0xFF);
-        g_theme.ok         = C2D_Color32(0x22, 0xC5, 0x5E, 0xFF);
-        g_theme.charging   = C2D_Color32(0xF5, 0x9E, 0x0B, 0xFF);
-    } else {
-        g_theme.bg         = C2D_Color32(0xF8, 0xFA, 0xFC, 0xFF);
-        g_theme.fg         = C2D_Color32(0x0F, 0x17, 0x2A, 0xFF);
-        g_theme.card       = C2D_Color32(0xFF, 0xFF, 0xFF, 0xFF);
-        g_theme.primary    = C2D_Color32(0x00, 0x72, 0xCE, 0xFF);
-        g_theme.primary_fg = C2D_Color32(0xFF, 0xFF, 0xFF, 0xFF);
-        g_theme.accent     = C2D_Color32(0xE8, 0xF4, 0xFD, 0xFF);
-        g_theme.accent_fg  = C2D_Color32(0x00, 0x72, 0xCE, 0xFF);
-        g_theme.muted      = C2D_Color32(0xF1, 0xF5, 0xF9, 0xFF);
-        g_theme.muted_fg   = C2D_Color32(0x64, 0x74, 0x8B, 0xFF);
-        g_theme.border     = C2D_Color32(0xE2, 0xE8, 0xF0, 0xFF);
-        g_theme.danger     = C2D_Color32(0xDC, 0x26, 0x26, 0xFF);
-        g_theme.ok         = C2D_Color32(0x16, 0xA3, 0x4A, 0xFF);
-        g_theme.charging   = C2D_Color32(0xD9, 0x77, 0x06, 0xFF);
-    }
+    g_theme.bg         = C2D_Color32(0x0F, 0x17, 0x2A, 0xFF);
+    g_theme.fg         = C2D_Color32(0xF1, 0xF5, 0xF9, 0xFF);
+    g_theme.card       = C2D_Color32(0x1E, 0x29, 0x3B, 0xFF);
+    g_theme.primary    = C2D_Color32(0x60, 0xA5, 0xFA, 0xFF);
+    g_theme.primary_fg = C2D_Color32(0x0F, 0x17, 0x2A, 0xFF);
+    g_theme.accent     = C2D_Color32(0x1E, 0x3A, 0x5F, 0xFF);
+    g_theme.accent_fg  = C2D_Color32(0x60, 0xA5, 0xFA, 0xFF);
+    g_theme.muted      = C2D_Color32(0x33, 0x41, 0x55, 0xFF);
+    g_theme.muted_fg   = C2D_Color32(0x94, 0xA3, 0xB8, 0xFF);
+    g_theme.border     = C2D_Color32(0x33, 0x41, 0x55, 0xFF);
+    g_theme.danger     = C2D_Color32(0xEF, 0x44, 0x44, 0xFF);
+    g_theme.ok         = C2D_Color32(0x22, 0xC5, 0x5E, 0xFF);
+    g_theme.charging   = C2D_Color32(0xF5, 0x9E, 0x0B, 0xFF);
 }
 
 static bool parse_text(C2D_Text *out, const char *str)
 {
     if (str == NULL || str[0] == '\0') return false;
-    if (s_font != NULL) return C2D_TextFontParse(out, s_font, s_text, str) != NULL;
-    return C2D_TextParse(out, s_text, str) != NULL;
+    if (s_font != NULL) return C2D_TextFontParse(out, s_font, s_text[s_text_i], str) != NULL;
+    return C2D_TextParse(out, s_text[s_text_i], str) != NULL;
 }
 
 bool ui_init(void)
@@ -78,39 +63,40 @@ bool ui_init(void)
     static const char *probe = "n";
 
     s_font = C2D_FontLoadSystem(CFG_REGION_EUR);
-    s_text = C2D_TextBufNew(16384);
+    s_text[0] = C2D_TextBufNew(16384);
+    s_text[1] = C2D_TextBufNew(16384);
     s_ui = C2D_SpriteSheetLoadFromMem(ui_gfx_t3x, ui_gfx_t3x_size);
     s_top = C2D_CreateScreenTarget(GFX_TOP, GFX_LEFT);
     s_bottom = C2D_CreateScreenTarget(GFX_BOTTOM, GFX_LEFT);
 
-    if (s_text != NULL) {
+    {
         C2D_Text t;
         if (parse_text(&t, probe)) {
             float w = 0.0f, h = 0.0f;
             C2D_TextGetDimensions(&t, 1.0f, 1.0f, &w, &h);
             if (w > 0.0f) s_char_w = w;
         }
-        C2D_TextBufClear(s_text);
     }
 
-    theme_apply(false);
-    return s_text != NULL && s_top != NULL && s_bottom != NULL;
+    theme_apply();
+    return s_text[0] != NULL && s_text[1] != NULL && s_top != NULL && s_bottom != NULL;
 }
 
 void ui_exit(void)
 {
     if (s_ui != NULL) C2D_SpriteSheetFree(s_ui);
-    if (s_text != NULL) C2D_TextBufDelete(s_text);
+    if (s_text[0] != NULL) C2D_TextBufDelete(s_text[0]);
+    if (s_text[1] != NULL) C2D_TextBufDelete(s_text[1]);
     if (s_font != NULL) C2D_FontFree(s_font);
     s_ui = NULL;
-    s_text = NULL;
+    s_text[0] = NULL;
+    s_text[1] = NULL;
     s_font = NULL;
 }
 
 void ui_frame_begin(void)
 {
     C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
-    if (s_text != NULL) C2D_TextBufClear(s_text);
     C2D_TargetClear(s_top, g_theme.bg);
     C2D_TargetClear(s_bottom, g_theme.bg);
 }
@@ -118,6 +104,9 @@ void ui_frame_begin(void)
 void ui_frame_end(void)
 {
     C3D_FrameEnd(0);
+    /* The previous frame is flushed at this point: recycle the other buffer. */
+    s_text_i ^= 1;
+    if (s_text[s_text_i] != NULL) C2D_TextBufClear(s_text[s_text_i]);
 }
 
 static void text_at(const char *str, float x, float y, float scale, u32 color)
@@ -155,10 +144,15 @@ static void text_render_wrap(const char *str, float x, float y, float box_w, flo
     C2D_DrawText(&t, C2D_WithColor | C2D_WordWrap, x, y, 0.5f, scale, scale, color, box_w);
 }
 
-static void fill_rect(float x, float y, float w, float h, u32 color)
+static void fill_rect_at(float x, float y, float w, float h, u32 color, float depth)
 {
     if (w <= 0.0f || h <= 0.0f) return;
-    C2D_DrawRectSolid(x, y, 0.9f, w, h, color);
+    C2D_DrawRectSolid(x, y, depth, w, h, color);
+}
+
+static void fill_rect(float x, float y, float w, float h, u32 color)
+{
+    fill_rect_at(x, y, w, h, color, 0.5f);
 }
 
 static void card(float x, float y, float w, float h, u32 fill, u32 border)
@@ -187,6 +181,21 @@ static void draw_icon_natural(int index, float x, float y, float size)
     img = C2D_SpriteSheetGetImage(s_ui, (size_t)index);
     C2D_DrawImageAt(img, x, y, 0.5f, NULL,
                     size / (float)img.subtex->width, size / (float)img.subtex->height);
+}
+
+/* Same as draw_icon(), but keeps the source aspect ratio: `h` is the height
+   and the width follows the sprite. Used by the non-square status sprites. */
+static void draw_icon_h(int index, float x, float y, float h, u32 color)
+{
+    C2D_Image img;
+    C2D_ImageTint tint;
+    float s;
+    if (s_ui == NULL) return;
+    if (index < 0 || (size_t)index >= C2D_SpriteSheetCount(s_ui)) return;
+    img = C2D_SpriteSheetGetImage(s_ui, (size_t)index);
+    s = h / (float)img.subtex->height;
+    C2D_PlainImageTint(&tint, color, 1.0f);
+    C2D_DrawImageAt(img, x, y, 0.5f, &tint, s, s);
 }
 
 static void draw_game_icon(int icon_index, float x, float y, float size)
@@ -259,11 +268,11 @@ static void window(const char *src, int scroll, int span, char *out, size_t cap)
 
 static void draw_status_indicators(void)
 {
-    char pct[16];
+    char  pct[16];
     float x = TOP_W - 8.0f;
     const float y = 9.0f;
 
-    // Wi-Fi: one sprite per strength level, red when disconnected.
+    // Wi-Fi: one 14x10 sprite per signal strength, red when disconnected.
     {
         int icon;
         u32 color;
@@ -272,35 +281,39 @@ static void draw_status_indicators(void)
         else if (g_app.wifi_bars == 1){ icon = ICON_NET_1;      color = g_theme.charging; }
         else                          { icon = (g_app.wifi_bars == 2) ? ICON_NET_2 : ICON_NET_3;
                                         color = g_theme.ok; }
-        draw_icon(icon, x - 14.0f, y + 2.0f, 14.0f, color);
-        x -= 20.0f;
+        draw_icon_h(icon, x - 14.0f, y + 3.0f, 10.0f, color);
+        x -= 22.0f;
     }
 
-    // Battery: outline sprite + charge bars drawn underneath (4 segments).
+    // Battery: the level is filled behind the 26x16 outline sprite.
     if (g_app.battery_percent >= 0) {
+        float bx;
+
         snprintf(pct, sizeof(pct), "%d%%", g_app.battery_percent);
-        text_right(pct, x, y + 2.0f, 0.36f, g_theme.muted_fg);
+        text_right(pct, x, y + 3.0f, 0.36f, g_theme.muted_fg);
         x -= text_w(pct, 0.36f) + 6.0f;
 
+        bx = x - 26.0f;
+
         if (g_app.battery_charging) {
-            fill_rect(x - 26.0f + 5.0f, y + 3.0f, 16.0f, 10.0f, g_theme.charging);
-            draw_icon(ICON_BATTERY_CHARGING, x - 26.0f, y + 1.0f, 26.0f, g_theme.fg);
+            fill_rect(bx + 6.0f, y + 2.0f, 16.0f, 12.0f, g_theme.charging);
+            draw_icon_h(ICON_BATTERY_CHARGING, bx, y, 16.0f, g_theme.fg);
         } else {
             int bars = g_app.battery_percent / 25 + 1;
-            float w;
             u32 color;
+
             if (bars > 4) bars = 4;
-            w = bars * 4.0f;
             color = (bars == 1) ? g_theme.danger : g_theme.ok;
-            fill_rect(x - 26.0f + 5.0f + (20.0f - w), y + 3.0f, w, 10.0f, color);
-            draw_icon(ICON_BATTERY, x - 26.0f, y + 1.0f, 26.0f, g_theme.fg);
+            fill_rect(bx + 6.0f, y + 2.0f, (float)bars * 4.0f, 12.0f, color);
+            draw_icon_h(ICON_BATTERY, bx, y, 16.0f, g_theme.fg);
         }
     }
 }
 
-static void draw_header(const char *right_label)
+static void draw_header(const char *note)
 {
-    char subtitle[192];
+    char line[320];
+    char subtitle[256];
 
     fill_rect(0.0f, 0.0f, TOP_W, HEADER_H, g_theme.card);
     fill_rect(0.0f, HEADER_H - 1.0f, TOP_W, 1.0f, g_theme.border);
@@ -309,20 +322,20 @@ static void draw_header(const char *right_label)
     text_at(APP_TITLE, 36.0f, 4.0f, 0.6f, g_theme.fg);
 
     if (g_app.catalog.store.title[0] != '\0') {
-        snprintf(subtitle, sizeof(subtitle), "%s \u00b7 %d/%d",
+        snprintf(line, sizeof(line), "%s \u00b7 %d/%d",
                  g_app.catalog.store.title, g_app.filter_count, g_app.catalog.count);
     } else {
-        snprintf(subtitle, sizeof(subtitle), "%d/%d", g_app.filter_count, g_app.catalog.count);
+        snprintf(line, sizeof(line), "%d/%d", g_app.filter_count, g_app.catalog.count);
     }
-    text_at(subtitle, 36.0f, 20.0f, 0.38f, g_theme.muted_fg);
-
-    if (right_label != NULL && right_label[0] != '\0') {
-        if (g_app.offline) {
-            text_right(tr("loading.offline"), TOP_W - 10.0f, 20.0f, 0.38f, g_theme.danger);
-        } else {
-            text_right(right_label, TOP_W - 10.0f, 20.0f, 0.38f, g_theme.muted_fg);
-        }
+    if (note != NULL && note[0] != '\0') {
+        size_t used = strlen(line);
+        snprintf(line + used, sizeof(line) - used, " \u00b7 %s", note);
     }
+    // The right side of the header belongs to the status indicators, so the
+    // subtitle line is the only place left for a short note.
+    ellipsize(line, subtitle, sizeof(subtitle), 244.0f, 0.38f);
+    text_at(subtitle, 36.0f, 20.0f, 0.38f,
+            g_app.offline ? g_theme.danger : g_theme.muted_fg);
 
     draw_status_indicators();
 }
@@ -382,8 +395,10 @@ void ui_draw_list(void)
 
     if (g_app.search[0] != '\0') {
         snprintf(right, sizeof(right), "%s %s", tr("search.label"), g_app.search);
+    } else if (g_app.offline) {
+        snprintf(right, sizeof(right), "%s", tr("loading.offline"));
     } else {
-        snprintf(right, sizeof(right), "%s", tr("search.hint"));
+        right[0] = '\0';
     }
     draw_header(right);
 
@@ -452,7 +467,7 @@ void ui_draw_list(void)
 
             card(6.0f, 54.0f, BOT_W - 12.0f, 90.0f, g_theme.card, g_theme.border);
             window(g->description, g_app.detail_scroll, DESC_WINDOW, desc, sizeof(desc));
-            if (desc[0] == '\0') text_at(tr("list.none"), 14.0f, 60.0f, 0.38f, g_theme.muted_fg);
+            if (desc[0] == '\0') text_at(tr("detail.nodesc"), 14.0f, 60.0f, 0.38f, g_theme.muted_fg);
             else text_render_wrap(desc, 14.0f, 60.0f, BOT_W - 28.0f, 0.4f, g_theme.muted_fg);
 
             if (game_has_rom(g)) {
@@ -471,7 +486,7 @@ void ui_draw_list(void)
 
 void ui_draw_settings(int cursor)
 {
-    static const char *keys[4] = { "settings.api", "settings.lang", "settings.theme", "settings.reload" };
+    static const char *keys[3] = { "settings.api", "settings.lang", "settings.reload" };
     char  value[512];
     int   i;
     float y;
@@ -480,7 +495,7 @@ void ui_draw_settings(int cursor)
     draw_header("");
     text_at(tr("settings.title"), 10.0f, HEADER_H + 6.0f, 0.6f, g_theme.fg);
 
-    for (i = 0; i < 4; i++) {
+    for (i = 0; i < 3; i++) {
         bool selected = (i == cursor);
         y = HEADER_H + 30.0f + (float)i * 40.0f;
 
@@ -493,9 +508,8 @@ void ui_draw_settings(int cursor)
         if (i == 0) {
             snprintf(value, sizeof(value), "%s", g_app.config.api_base);
         } else if (i == 1) {
-            snprintf(value, sizeof(value), "%s", g_app.config.lang);
-        } else if (i == 2) {
-            snprintf(value, sizeof(value), "%s", g_app.config.dark ? tr("settings.dark") : tr("settings.light"));
+            snprintf(value, sizeof(value), "%s",
+                     (strncmp(g_app.config.lang, "en", 2) == 0) ? tr("lang.en") : tr("lang.fr"));
         }
         if (value[0] != '\0') {
             char short_value[128];
@@ -526,10 +540,19 @@ void ui_draw_task(const char *label, float frac)
     snprintf(percent, sizeof(percent), "%d %%", (int)(frac * 100.0f));
     text_center(frac >= 0.0f ? percent : "...", TOP_W / 2.0f, 152.0f, 0.45f, g_theme.muted_fg);
 
-    if (g_app.download_speed > 0) {
-        snprintf(speed_str, sizeof(speed_str), "%.2f MB/s  ETA: %ds",
-                 g_app.download_speed / (1024.0f * 1024.0f),
-                 (int)(g_app.download_eta));
+    if (g_app.download_speed > 0.0f) {
+        char rate[32];
+        char eta[32];
+
+        snprintf(rate, sizeof(rate), "%.2f MB/s", g_app.download_speed / (1024.0f * 1024.0f));
+        if (g_app.download_eta < 1.0f) {
+            snprintf(eta, sizeof(eta), "--");
+        } else {
+            int secs = (int)(g_app.download_eta + 0.5f);
+            if (secs >= 60) snprintf(eta, sizeof(eta), "%d:%02d", secs / 60, secs % 60);
+            else            snprintf(eta, sizeof(eta), "%ds", secs);
+        }
+        snprintf(speed_str, sizeof(speed_str), tr("task.speed"), rate, eta);
         text_center(speed_str, TOP_W / 2.0f, 172.0f, 0.4f, g_theme.muted_fg);
     }
 
@@ -564,4 +587,25 @@ void ui_draw_error(const char *message)
 
     C2D_SceneBegin(s_bottom);
     draw_bottom_hint(tr("error.hint"));
+}
+
+void ui_draw_confirm(const char *question, int choice)
+{
+    C2D_SceneBegin(s_top);
+    draw_header("");
+    text_center(question != NULL ? question : "", TOP_W / 2.0f, 96.0f, 0.5f, g_theme.fg);
+
+    card(TOP_W / 2.0f - 150.0f, 130.0f, 140.0f, 40.0f,
+         choice == 0 ? g_theme.accent : g_theme.card,
+         choice == 0 ? g_theme.primary : g_theme.border);
+    card(TOP_W / 2.0f + 10.0f, 130.0f, 140.0f, 40.0f,
+         choice == 1 ? g_theme.accent : g_theme.card,
+         choice == 1 ? g_theme.primary : g_theme.border);
+    text_center(tr("common.yes"), TOP_W / 2.0f - 80.0f, 142.0f, 0.5f,
+                choice == 0 ? g_theme.accent_fg : g_theme.fg);
+    text_center(tr("common.no"), TOP_W / 2.0f + 80.0f, 142.0f, 0.5f,
+                choice == 1 ? g_theme.accent_fg : g_theme.fg);
+
+    C2D_SceneBegin(s_bottom);
+    draw_bottom_hint(tr("confirm.hint"));
 }

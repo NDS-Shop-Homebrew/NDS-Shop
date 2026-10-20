@@ -20,7 +20,7 @@ typedef struct {
 
 extern Theme g_theme;
 
-void theme_apply(bool dark);
+void theme_apply(void);
 
 #define SCR_W_TOP 400.0f
 #define SCR_H_TOP 240.0f

@@ -18,3 +18,4 @@ void ui_draw_settings(int cursor);
 void ui_draw_task(const char *label, float frac);
 void ui_draw_help(int scroll);
 void ui_draw_error(const char *message);
+void ui_draw_confirm(const char *question, int choice);

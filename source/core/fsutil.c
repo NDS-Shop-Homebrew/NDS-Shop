@@ -152,7 +152,6 @@ void config_load(Config *cfg)
 
     copy_str(cfg->api_base, sizeof(cfg->api_base), APP_API_DEFAULT);
     copy_str(cfg->lang, sizeof(cfg->lang), APP_LANG_DEFAULT);
-    cfg->dark = false;
 
     text = fs_read_file(APP_CONFIG_PATH, NULL);
     if (text == NULL) return;
@@ -168,8 +167,6 @@ void config_load(Config *cfg)
             copy_str(cfg->api_base, sizeof(cfg->api_base), eq + 1);
         } else if (strcmp(line, CFG_LANG) == 0) {
             copy_str(cfg->lang, sizeof(cfg->lang), eq + 1);
-        } else if (strcmp(line, CFG_THEME) == 0) {
-            cfg->dark = (strcmp(eq + 1, "dark") == 0);
         }
     }
     free(text);
@@ -183,13 +180,11 @@ bool config_save(const Config *cfg)
     int  n;
 
     n = snprintf(buf, sizeof(buf),
-                 "# Configuration NDS-Shop\n"
-                 "%s=%s\n"
+                 "# NDS-Shop configuration\n"
                  "%s=%s\n"
                  "%s=%s\n",
                  CFG_API, cfg->api_base,
-                 CFG_LANG, cfg->lang,
-                 CFG_THEME, cfg->dark ? "dark" : "light");
+                 CFG_LANG, cfg->lang);
     if (n <= 0) return false;
     return fs_write_file(APP_CONFIG_PATH, buf, (size_t)n);
 }
