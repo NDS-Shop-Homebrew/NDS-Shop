@@ -91,13 +91,26 @@ static void set_status(const char *text)
     g_app.status_ttl = STATUS_FRAMES;
 }
 
+// Redrawing a whole frame costs far more than receiving a download chunk: at
+// 60 fps the UI would eat a large share of the bandwidth. 10 fps stays smooth
+// enough for the progress bar while leaving the transfer room to breathe.
+static bool ui_draw_due(void)
+{
+    static u64 last = 0;
+    u64        now = svcGetSystemTick();
+
+    if (last != 0 && (u64)(now - last) < (u64)(SYSCLOCK_ARM11 / 10)) return false;
+    last = now;
+    return true;
+}
+
 static void loading_progress(const char *label, float frac, void *user)
 {
     (void)user;
+    if (!ui_draw_due()) return;
     ui_frame_begin();
     ui_draw_loading(label != NULL ? label : tr("loading.catalog"), frac);
     ui_frame_end();
-    hidScanInput();
 }
 
 static void task_progress(const char *label, float frac, void *user)
@@ -108,13 +121,16 @@ static void task_progress(const char *label, float frac, void *user)
     if (label != NULL) snprintf(g_app.status, sizeof(g_app.status), "%s", label);
     if (frac >= 0.0f) g_app.progress = frac;
 
-    ui_frame_begin();
-    ui_draw_task(g_app.status, g_app.progress);
-    ui_frame_end();
-
+    // Cancel has to be polled on every chunk, even when the frame is skipped.
     hidScanInput();
     down = hidKeysDown();
     if (down & KEY_B) g_app.cancel = true;
+
+    if (!ui_draw_due()) return;
+
+    ui_frame_begin();
+    ui_draw_task(g_app.status, g_app.progress);
+    ui_frame_end();
 }
 
 static void load_atlas(void)

@@ -14,6 +14,15 @@
 #define SOC_ALIGN       0x1000
 #define SOC_BUFFERSIZE  0x100000
 
+// Bulk downloads go through httpc: the system stack runs on the wireless
+// hardware and is far cheaper than libcurl+mbedTLS on the ARM11. Large chunks
+// and a large stdio buffer keep the SD card writes few and sequential, which is
+// what actually limits throughput on real hardware.
+#define DL_RECV_SIZE    (64 * 1024)
+#define DL_FILE_BUFSIZE (512 * 1024)
+#define DL_TIMEOUT_NS   (15ULL * 1000000000ULL)
+#define DL_MAX_REDIRECTS 4
+
 static void  *s_soc_buffer = NULL;
 static bool   s_ready = false;
 static char   s_error[256];
@@ -24,16 +33,11 @@ struct MemSink {
     size_t cap;
 };
 
-struct FileSink {
-    FILE      *fp;
-    ProgressFn cb;
-    void      *user;
-    bool       write_failed;
-    u64        sample_tick;
-    size_t     sample_bytes;
-    bool       sampled;
-    float      speed;
-    float      eta;
+struct DlMeter {
+    u64    tick;
+    size_t bytes;
+    bool   started;
+    float  speed;
 };
 
 static void set_error(const char *fmt, const char *arg)
@@ -45,6 +49,11 @@ static void set_error(const char *fmt, const char *arg)
 static void set_error_status(const char *prefix, long status)
 {
     snprintf(s_error, sizeof(s_error), "%s HTTP %ld", prefix, status);
+}
+
+static void set_error_result(Result rc)
+{
+    snprintf(s_error, sizeof(s_error), "download failed: 0x%08lX", (unsigned long)rc);
 }
 
 const char *net_error(void)
@@ -67,6 +76,14 @@ bool net_init(void)
         set_error("socInit() failed", NULL);
         return false;
     }
+    // GET requests never upload a body, so httpc needs no shared memory.
+    if (R_FAILED(httpcInit(0))) {
+        socExit();
+        free(s_soc_buffer);
+        s_soc_buffer = NULL;
+        set_error("httpcInit() failed", NULL);
+        return false;
+    }
     curl_global_init(CURL_GLOBAL_DEFAULT);
     s_ready = true;
     return true;
@@ -75,6 +92,7 @@ bool net_init(void)
 void net_exit(void)
 {
     if (!s_ready) return;
+    httpcExit();
     curl_global_cleanup();
     socExit();
     free(s_soc_buffer);
@@ -122,52 +140,45 @@ static size_t sink_mem(char *ptr, size_t size, size_t nmemb, void *userdata)
     return n;
 }
 
-static size_t sink_file(char *ptr, size_t size, size_t nmemb, void *userdata)
+static void meter_reset(struct DlMeter *m)
 {
-    struct FileSink *f = (struct FileSink *)userdata;
-    size_t items = fwrite(ptr, size, nmemb, f->fp);
-    if (items != nmemb) f->write_failed = true;
-    return items * size;
+    m->tick = 0;
+    m->bytes = 0;
+    m->started = false;
+    // g_app.download_speed keeps the previous reading so the indicator does not
+    // blank out between files; the first fresh sample replaces it. The EMA seed
+    // itself must stay at zero, otherwise the old speed skews the new average.
+    m->speed = 0.0f;
 }
 
-static int sink_progress(void *userdata, curl_off_t dltotal, curl_off_t dlnow,
-                         curl_off_t ultotal, curl_off_t ulnow)
+static void meter_update(struct DlMeter *m, size_t bytes, u32 total)
 {
-    struct FileSink *f = (struct FileSink *)userdata;
-    (void)ultotal;
-    (void)ulnow;
-
-    u64 now = svcGetSystemTick();
+    u64   now = svcGetSystemTick();
+    float dt;
+    float inst;
 
     // Sample at a fixed pace and smooth the result: a per-callback value makes
     // the speed/ETA text jitter and visibly blink.
-    if (!f->sampled) {
-        // First callback only stores the baseline: there is nothing to measure yet.
-        f->sampled = true;
-        f->sample_tick = now;
-        f->sample_bytes = (size_t)dlnow;
-    } else {
-        float dt = (float)(now - f->sample_tick) / (float)SYSCLOCK_ARM11;
-        if (dt >= 0.5f) {
-            float inst = (float)((size_t)dlnow - f->sample_bytes) / dt;
-            if (inst < 0.0f) inst = 0.0f;
-            f->speed = (f->speed > 0.0f) ? (f->speed * 0.7f + inst * 0.3f) : inst;
-            f->eta = (dltotal > 0 && f->speed > 1.0f)
-                         ? (float)(dltotal - dlnow) / f->speed
-                         : 0.0f;
-            f->sample_tick = now;
-            f->sample_bytes = (size_t)dlnow;
-            g_app.download_speed = f->speed;
-            g_app.download_eta = f->eta;
-        }
+    if (!m->started) {
+        // First sample only stores the baseline: there is nothing to measure yet.
+        m->started = true;
+        m->tick = now;
+        m->bytes = bytes;
+        return;
     }
 
-    if (f->cb != NULL) {
-        float frac = -1.0f;
-        if (dltotal > 0) frac = (float)((double)dlnow / (double)dltotal);
-        f->cb(NULL, frac, f->user);
-    }
-    return g_app.cancel ? 1 : 0;
+    dt = (float)(now - m->tick) / (float)SYSCLOCK_ARM11;
+    if (dt < 0.5f) return;
+
+    inst = (float)(bytes - m->bytes) / dt;
+    if (inst < 0.0f) inst = 0.0f;
+    m->speed = (m->speed > 0.0f) ? (m->speed * 0.7f + inst * 0.3f) : inst;
+    g_app.download_speed = m->speed;
+    g_app.download_eta = (total > 0 && m->speed > 1.0f)
+                             ? (float)((double)total - (double)bytes) / m->speed
+                             : 0.0f;
+    m->tick = now;
+    m->bytes = bytes;
 }
 
 void net_buf_free(NetBuf *b)
@@ -226,13 +237,53 @@ bool net_get(const char *url, NetBuf *out)
     return true;
 }
 
+// httpc does not follow redirects, so resolve the Location header ourselves.
+// Absolute targets are used as-is; a path is appended to the current origin.
+static bool resolve_location(const char *base, const char *location,
+                             char *out, size_t cap)
+{
+    const char *sep;
+    const char *slash;
+    size_t      prefix;
+    size_t      len;
+
+    if (strncmp(location, "http://", 7) == 0 ||
+        strncmp(location, "https://", 8) == 0) {
+        if (strlen(location) >= cap) return false;
+        snprintf(out, cap, "%s", location);
+        return true;
+    }
+
+    if (location[0] != '/') return false;
+
+    sep = strstr(base, "://");
+    if (sep == NULL) return false;
+    slash = strchr(sep + 3, '/');
+    prefix = (slash != NULL) ? (size_t)(slash - base) : strlen(base);
+    len = strlen(location);
+    if (prefix + len >= cap) return false;
+
+    memcpy(out, base, prefix);
+    memcpy(out + prefix, location, len + 1);
+    return true;
+}
+
 bool net_download(const char *url, const char *dest, ProgressFn cb, void *user)
 {
-    CURL *h;
-    struct FileSink sink = { 0 };
-    CURLcode rc;
-    long status = 0;
-    bool ok = false;
+    httpcContext    ctx;
+    struct DlMeter  meter;
+    char            current[1400];
+    char            location[1024];
+    char            next[1400];
+    u8             *buf = NULL;
+    FILE           *fp = NULL;
+    bool            opened = false;
+    bool            ok = false;
+    u32             status = 0;
+    u32             total = 0;
+    size_t          done = 0;
+    Result          rc = 0;
+    int             hop;
 
     if (!s_ready && !net_init()) return false;
 
@@ -241,51 +292,129 @@ bool net_download(const char *url, const char *dest, ProgressFn cb, void *user)
         return false;
     }
 
-    sink.fp = fopen(dest, "wb");
-    if (sink.fp == NULL) {
+    if (strlen(url) >= sizeof(current)) {
+        set_error("download URL is too long", NULL);
+        return false;
+    }
+    snprintf(current, sizeof(current), "%s", url);
+
+    buf = (u8 *)memalign(SOC_ALIGN, DL_RECV_SIZE);
+    if (buf == NULL) {
+        set_error("out of memory for download buffer", NULL);
+        return false;
+    }
+
+    fp = fopen(dest, "wb");
+    if (fp == NULL) {
         set_error("failed to open %s for writing", dest);
+        free(buf);
         return false;
     }
-    sink.cb = cb;
-    sink.user = user;
-    sink.write_failed = false;
-    sink.sample_tick = 0;
-    sink.sample_bytes = 0;
-    sink.sampled = false;
-    // g_app.download_speed keeps the previous reading so the indicator does not
-    // blank out between files; the first fresh sample replaces it. The EMA seed
-    // itself must stay at zero, otherwise the old speed skews the new average.
-    sink.speed = 0.0f;
-    sink.eta = 0.0f;
+    setvbuf(fp, NULL, _IOFBF, DL_FILE_BUFSIZE);
+    meter_reset(&meter);
 
-    h = curl_new(url);
-    if (h == NULL) {
-        fclose(sink.fp);
-        return false;
+    for (hop = 0; hop <= DL_MAX_REDIRECTS; hop++) {
+        rc = httpcOpenContext(&ctx, HTTPC_METHOD_GET, current, 0);
+        if (R_FAILED(rc)) {
+            set_error_result(rc);
+            goto out;
+        }
+        opened = true;
+
+        // Same policy as the previous libcurl path: the console has no usable
+        // CA bundle, so certificate verification stays disabled.
+        httpcSetSSLOpt(&ctx, SSLCOPT_DisableVerify);
+        httpcSetKeepAlive(&ctx, HTTPC_KEEPALIVE_ENABLED);
+        httpcAddRequestHeaderField(&ctx, "User-Agent", HTTP_USER_AGENT);
+
+        rc = httpcBeginRequest(&ctx);
+        if (R_FAILED(rc)) {
+            set_error_result(rc);
+            goto out;
+        }
+
+        rc = httpcGetResponseStatusCodeTimeout(&ctx, &status, DL_TIMEOUT_NS);
+        if (R_FAILED(rc)) {
+            set_error_result(rc);
+            goto out;
+        }
+
+        if (status / 100 != 3) break;
+
+        rc = httpcGetResponseHeader(&ctx, "location", location, sizeof(location));
+        if (R_FAILED(rc)) {
+            set_error_status("server responded", (long)status);
+            goto out;
+        }
+        if (!resolve_location(current, location, next, sizeof(next))) {
+            set_error_status("server responded", (long)status);
+            goto out;
+        }
+        snprintf(current, sizeof(current), "%s", next);
+
+        httpcCancelConnection(&ctx);
+        httpcCloseContext(&ctx);
+        opened = false;
     }
 
-    curl_easy_setopt(h, CURLOPT_WRITEFUNCTION, sink_file);
-    curl_easy_setopt(h, CURLOPT_WRITEDATA, &sink);
-    curl_easy_setopt(h, CURLOPT_NOPROGRESS, 0L);
-    curl_easy_setopt(h, CURLOPT_XFERINFOFUNCTION, sink_progress);
-    curl_easy_setopt(h, CURLOPT_XFERINFODATA, &sink);
+    if (status / 100 != 2) {
+        set_error_status("server responded", (long)status);
+        goto out;
+    }
 
-    rc = curl_easy_perform(h);
-    if (rc != CURLE_OK) {
-        set_error("download failed: %s", curl_easy_strerror(rc));
-    } else {
-        curl_easy_getinfo(h, CURLINFO_RESPONSE_CODE, &status);
-        if (status < 200 || status >= 300) {
-            set_error_status("server responded", status);
-        } else if (sink.write_failed) {
-            set_error("incomplete write to SD card", NULL);
-        } else {
-            ok = true;
+    httpcGetDownloadSizeState(&ctx, NULL, &total);
+
+    for (;;) {
+        u32 got = 0;
+
+        rc = httpcDownloadData(&ctx, buf, DL_RECV_SIZE, &got);
+        if (R_FAILED(rc) && rc != (Result)HTTPC_RESULTCODE_DOWNLOADPENDING) {
+            set_error_result(rc);
+            goto out;
+        }
+
+        if (got > 0) {
+            if (fwrite(buf, 1, got, fp) != got) {
+                set_error("incomplete write to SD card", NULL);
+                goto out;
+            }
+            done += got;
+            meter_update(&meter, done, total);
+            if (cb != NULL) {
+                float frac = (total > 0)
+                                 ? (float)((double)done / (double)total)
+                                 : -1.0f;
+                cb(NULL, frac, user);
+            }
+        }
+
+        if (g_app.cancel) {
+            set_error("download cancelled", NULL);
+            goto out;
+        }
+
+        // DOWNLOADPENDING means data was written and more is on the way.
+        if (rc != (Result)HTTPC_RESULTCODE_DOWNLOADPENDING) break;
+        if (got == 0) {
+            set_error("download stalled", NULL);
+            goto out;
         }
     }
-    curl_easy_cleanup(h);
-    fclose(sink.fp);
 
+    if (fflush(fp) != 0 || ferror(fp)) {
+        set_error("incomplete write to SD card", NULL);
+        goto out;
+    }
+
+    ok = true;
+
+out:
+    if (opened) {
+        httpcCancelConnection(&ctx);
+        httpcCloseContext(&ctx);
+    }
+    if (fp != NULL) fclose(fp);
+    free(buf);
     if (!ok) remove(dest);
     return ok;
 }
