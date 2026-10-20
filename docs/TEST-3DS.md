@@ -55,9 +55,9 @@ clean state, delete:
 | 2 | Wi-Fi back on, `A` | Loading screen, then the game list: thumbnails visible, footer with store title and game count. Header shows battery percentage and Wi-Fi strength bars. |
 | 3 | Inspect the SD card | `sdmc:/3ds/NDS-Shop/` contains `config.txt` and `catalog.json`; after icons load, `atlas.t3x` and `atlas.url`. |
 | 4 | `X`, type a title then an author | The list filters, the counter follows, `B` clears the search. |
-| 5 | `Y`: change language, theme, then restart | Settings are preserved (check `config.txt`). |
+| 5 | `Y`: change language, then restart | Settings are preserved (check `config.txt`). |
 | 6 | `Y`: enter a wrong address (`https://example.invalid`) | Readable **Error** screen, no crash; a correct address restores the catalog. |
-| 7 | `A` on a game, let the install finish | Progress shown (percentage), live speed (MB/s) and ETA while downloading, then a completion message. |
+| 7 | `A` on a game, let the install finish | Progress shown (percentage), live speed (MB/s) and ETA while downloading, then a Yes/No prompt for the HOME menu shortcut. With **No**, the ROM is kept and no `.cia` is downloaded. |
 | 8 | Inspect the SD card after install | The ROM is in `sdmc:/roms/nds/`; **no leftover `.cia`** on the card. |
 | 9 | Return to the console HOME menu | The game shortcut is present and launches (Nintendo DS game in retrocompatible mode). |
 | 10 | Restart an install then press `B` mid-download | The task stops, the partial file is deleted, back to the list. |

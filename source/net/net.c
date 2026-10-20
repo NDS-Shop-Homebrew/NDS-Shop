@@ -29,9 +29,9 @@ struct FileSink {
     ProgressFn cb;
     void      *user;
     bool       write_failed;
-    u64        start_tick;
-    u64        last_tick;
-    size_t     last_bytes;
+    u64        sample_tick;
+    size_t     sample_bytes;
+    bool       sampled;
     float      speed;
     float      eta;
 };
@@ -138,21 +138,29 @@ static int sink_progress(void *userdata, curl_off_t dltotal, curl_off_t dlnow,
     (void)ulnow;
 
     u64 now = svcGetSystemTick();
-    float dt = (float)(now - f->last_tick) / (float)16777216.0f;
 
-    if (f->last_tick > 0 && dt > 0.1f) {
-        size_t delta = (size_t)dlnow - f->last_bytes;
-        f->speed = (float)delta / dt;
-        if (dltotal > 0 && f->speed > 0) {
-            f->eta = (float)(dltotal - dlnow) / f->speed;
+    // Sample at a fixed pace and smooth the result: a per-callback value makes
+    // the speed/ETA text jitter and visibly blink.
+    if (!f->sampled) {
+        // First callback only stores the baseline: there is nothing to measure yet.
+        f->sampled = true;
+        f->sample_tick = now;
+        f->sample_bytes = (size_t)dlnow;
+    } else {
+        float dt = (float)(now - f->sample_tick) / (float)SYSCLOCK_ARM11;
+        if (dt >= 0.5f) {
+            float inst = (float)((size_t)dlnow - f->sample_bytes) / dt;
+            if (inst < 0.0f) inst = 0.0f;
+            f->speed = (f->speed > 0.0f) ? (f->speed * 0.7f + inst * 0.3f) : inst;
+            f->eta = (dltotal > 0 && f->speed > 1.0f)
+                         ? (float)(dltotal - dlnow) / f->speed
+                         : 0.0f;
+            f->sample_tick = now;
+            f->sample_bytes = (size_t)dlnow;
+            g_app.download_speed = f->speed;
+            g_app.download_eta = f->eta;
         }
     }
-
-    f->last_tick = now;
-    f->last_bytes = (size_t)dlnow;
-
-    g_app.download_speed = f->speed;
-    g_app.download_eta = f->eta;
 
     if (f->cb != NULL) {
         float frac = -1.0f;
@@ -241,9 +249,12 @@ bool net_download(const char *url, const char *dest, ProgressFn cb, void *user)
     sink.cb = cb;
     sink.user = user;
     sink.write_failed = false;
-    sink.start_tick = svcGetSystemTick();
-    sink.last_tick = 0;
-    sink.last_bytes = 0;
+    sink.sample_tick = 0;
+    sink.sample_bytes = 0;
+    sink.sampled = false;
+    // g_app.download_speed keeps the previous reading so the indicator does not
+    // blank out between files; the first fresh sample replaces it. The EMA seed
+    // itself must stay at zero, otherwise the old speed skews the new average.
     sink.speed = 0.0f;
     sink.eta = 0.0f;
 

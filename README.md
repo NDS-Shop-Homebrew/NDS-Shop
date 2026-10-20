@@ -15,12 +15,12 @@ content is distributed.
 - Paginated catalog fetched from the API (`/api/v1/catalog`), with a local
   cache for offline use.
 - Search by title or author.
-- One-press install: ROM download, forwarder installation, temporary file
-  cleanup.
+- One-press install: ROM download, then an optional prompt to install the HOME
+  menu shortcut (forwarder), followed by temporary file cleanup.
 - Icon atlas downloaded from the API (no game icons embedded).
 - Live battery and Wi-Fi signal indicators in the header.
 - Real-time download telemetry (speed and ETA) during installation.
-- Light/dark theme and an English or French interface.
+- Dark theme and an English or French interface.
 - Configurable API address, to point at another instance of the catalog.
 
 ## Installation
@@ -53,7 +53,6 @@ The file `sdmc:/3ds/NDS-Shop/config.txt` is created on first launch:
 # NDS-Shop configuration
 api=https://api.db-nds-shop.fr
 lang=en
-theme=light
 ```
 
 The API address can also be changed from the Settings screen (**Y** button).

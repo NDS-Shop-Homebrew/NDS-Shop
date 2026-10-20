@@ -81,7 +81,10 @@ static bool run_step(const ScriptStep *s, struct Task *task, char *err, size_t e
 
     if (strcmp(s->type, "installCia") == 0) {
         task->label = tr("task.install");
+        g_app.download_speed = 0.0f;
+        g_app.download_eta = 0.0f;
         report(task, 0.0f);
+        if (!g_app.ask_forwarder) return true;   // user declined the HOME shortcut
         if (!cia_install(sd_of(path, sizeof(path), s->file), step_progress, task, err, errcap)) {
             return false;
         }
@@ -90,6 +93,8 @@ static bool run_step(const ScriptStep *s, struct Task *task, char *err, size_t e
 
     if (strcmp(s->type, "deleteFile") == 0) {
         task->label = tr("task.cleanup");
+        g_app.download_speed = 0.0f;
+        g_app.download_eta = 0.0f;
         report(task, 0.5f);
         remove(sd_of(path, sizeof(path), s->file));
         return true;
@@ -98,7 +103,8 @@ static bool run_step(const ScriptStep *s, struct Task *task, char *err, size_t e
     return true;
 }
 
-static bool run_fallback(const Game *g, struct Task *task, char *err, size_t errcap)
+static bool run_fallback(const Game *g, struct Task *task, AskForwarderFn ask_forwarder,
+                         void *user, char *err, size_t errcap)
 {
     const Download *rom = NULL;
     const Download *cia = NULL;
@@ -126,6 +132,10 @@ static bool run_fallback(const Game *g, struct Task *task, char *err, size_t err
     }
 
     if (cia != NULL) {
+        g_app.ask_forwarder = (ask_forwarder != NULL) ? ask_forwarder(user) : true;
+    }
+
+    if (cia != NULL && g_app.ask_forwarder) {
         task->label = tr("task.install");
         task->base = 0.6f;
         task->span = 0.4f;
@@ -143,8 +153,16 @@ static bool run_fallback(const Game *g, struct Task *task, char *err, size_t err
 
 bool scripts_run(const Game *g, ProgressFn cb, void *user, char *err, size_t errcap)
 {
+    return scripts_run_with_prompt(g, cb, NULL, user, err, errcap);
+}
+
+bool scripts_run_with_prompt(const Game *g, ProgressFn cb, AskForwarderFn ask_forwarder,
+                             void *user, char *err, size_t errcap)
+{
     struct Task task;
-    int i;
+    bool has_forwarder = false;
+    bool asked = false;
+    int  i;
 
     if (err != NULL && errcap > 0) err[0] = '\0';
 
@@ -154,16 +172,37 @@ bool scripts_run(const Game *g, ProgressFn cb, void *user, char *err, size_t err
     task.span = 1.0f;
     task.label = tr("task.download");
 
-    if (g->script_count == 0) return run_fallback(g, &task, err, errcap);
+    if (g->script_count == 0) return run_fallback(g, &task, ask_forwarder, user, err, errcap);
 
     for (i = 0; i < g->script_count; i++) {
+        if (strcmp(g->scripts[i].type, "installCia") == 0) has_forwarder = true;
+    }
+
+    for (i = 0; i < g->script_count; i++) {
+        const ScriptStep *step = &g->scripts[i];
+        bool is_download = (strcmp(step->type, "downloadFile") == 0);
+        bool is_rom = is_download && ends_with_ci(step->output, ".nds");
+        bool is_forwarder = (strcmp(step->type, "installCia") == 0) ||
+                            (is_download && ends_with_ci(step->output, ".cia")) ||
+                            (strcmp(step->type, "deleteFile") == 0 && ends_with_ci(step->file, ".cia"));
+
         task.base = (float)i / (float)g->script_count;
         task.span = 1.0f / (float)g->script_count;
+
         if (g_app.cancel) {
             snprintf(err, errcap, "%s", tr("task.cancelled"));
             return false;
         }
-        if (!run_step(&g->scripts[i], &task, err, errcap)) return false;
+
+        // The forwarder steps are silently skipped when the user declined them.
+        if (is_forwarder && !g_app.ask_forwarder) continue;
+
+        if (!run_step(step, &task, err, errcap)) return false;
+
+        if (is_rom && has_forwarder && !asked) {
+            asked = true;
+            g_app.ask_forwarder = (ask_forwarder != NULL) ? ask_forwarder(user) : true;
+        }
     }
     return true;
 }

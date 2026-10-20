@@ -149,15 +149,41 @@ static void load_catalog(void)
     load_atlas();
 }
 
+static bool ask_forwarder_cb(void *user)
+{
+    char *question = (char *)user;
+    int   choice = 0;
+
+    for (;;) {
+        u32 down;
+
+        hidScanInput();
+        down = hidKeysDown();
+
+        if (down & KEY_LEFT)  choice = 0;
+        if (down & KEY_RIGHT) choice = 1;
+        if (down & KEY_A)     return choice == 0;
+        if (down & KEY_B)     return false;
+        if (down & KEY_START) return false;
+
+        ui_frame_begin();
+        ui_draw_confirm(question, choice);
+        ui_frame_end();
+    }
+}
+
 static void action_install(void)
 {
     const Game *g = selected_game();
     char err[512];
+    char question[192];
 
     if (g == NULL) return;
 
     g_app.cancel = false;
     g_app.progress = 0.0f;
+    g_app.ask_forwarder = true;
+    snprintf(question, sizeof(question), "%s", tr("task.ask_forwarder"));
     snprintf(g_app.status, sizeof(g_app.status), "%s", tr("task.download"));
     g_app.previous = SCR_LIST;
     g_app.screen = SCR_TASK;
@@ -166,7 +192,7 @@ static void action_install(void)
     ui_draw_task(g_app.status, g_app.progress);
     ui_frame_end();
 
-    if (scripts_run(g, task_progress, NULL, err, sizeof(err))) {
+    if (scripts_run_with_prompt(g, task_progress, ask_forwarder_cb, question, err, sizeof(err))) {
         set_status(tr("task.done"));
     } else {
         snprintf(g_app.error, sizeof(g_app.error), "%s",
@@ -228,11 +254,6 @@ static void settings_activate(int cursor)
                      (strncmp(g_app.config.lang, "en", 2) == 0) ? "fr" : "en");
             config_save(&g_app.config);
             break;
-        case 2:
-            g_app.config.dark = !g_app.config.dark;
-            theme_apply(g_app.config.dark);
-            config_save(&g_app.config);
-            break;
         default:
             load_catalog();
             break;
@@ -243,8 +264,6 @@ static void settings_reset(void)
 {
     snprintf(g_app.config.api_base, sizeof(g_app.config.api_base), "%s", APP_API_DEFAULT);
     snprintf(g_app.config.lang, sizeof(g_app.config.lang), "%s", APP_LANG_DEFAULT);
-    g_app.config.dark = false;
-    theme_apply(false);
     config_save(&g_app.config);
     set_status(tr("settings.reset"));
 }
@@ -275,8 +294,8 @@ static void handle_list(u32 down)
 
 static void handle_settings(u32 down)
 {
-    if (down & KEY_DOWN) g_app.cursor = (g_app.cursor + 1) % 4;
-    if (down & KEY_UP)   g_app.cursor = (g_app.cursor + 3) % 4;
+    if (down & KEY_DOWN) g_app.cursor = (g_app.cursor + 1) % 3;
+    if (down & KEY_UP)   g_app.cursor = (g_app.cursor + 2) % 3;
     if (down & KEY_A)    settings_activate(g_app.cursor);
     if (down & KEY_X)    settings_reset();
     if (down & KEY_B)    g_app.screen = SCR_LIST;
@@ -307,7 +326,6 @@ int main(void)
     C2D_Prepare();
 
     config_load(&g_app.config);
-    theme_apply(g_app.config.dark);
 
     if (!ui_init()) {
         C2D_Fini();

@@ -16,7 +16,6 @@
 
 #define CFG_API   "api"
 #define CFG_LANG  "lang"
-#define CFG_THEME "theme"
 
 #define CATALOG_PAGE_LIMIT 200
 
@@ -65,7 +64,6 @@ typedef struct {
 typedef struct {
     char api_base[512];
     char lang[8];
-    bool dark;
 } Config;
 
 typedef enum {
@@ -106,6 +104,7 @@ typedef struct {
     int battery_percent;
     bool battery_charging;
     int wifi_bars;      // -1 = disconnected, 0..3 = signal strength
+    bool ask_forwarder; // true = install the HOME menu shortcut
     float download_speed;
     float download_eta;
 } AppState;
