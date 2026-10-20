@@ -88,10 +88,10 @@ static const char *PAGE =
     "\"title\":\"NDS-Shop\","
     "\"author\":\"NDS-Shop-Homebrew\","
     "\"description\":\"Boutique\","
-    "\"sheet\":\"https://api.example/api/v1/assets/unistore/db-nds-shop.t3x\","
-    "\"sheet_dsi\":\"https://api.example/api/v1/assets/unistore/db-nds-shop.tdx\","
-    "\"icon\":\"https://api.example/api/v1/assets/unistore/icon.png\","
-    "\"cover\":\"https://api.example/api/v1/assets/unistore/cover.png\""
+    "\"sheet\":\"https://api.example/api/v1/assets/atlas/db-nds-shop.t3x\","
+    "\"sheet_dsi\":\"https://api.example/api/v1/assets/atlas/db-nds-shop.tdx\","
+    "\"icon\":\"https://api.example/api/v1/assets/atlas/icon.png\","
+    "\"cover\":\"https://api.example/api/v1/assets/atlas/cover.png\""
     "}"
     "}";
 
@@ -128,7 +128,7 @@ int main(void)
     check_str(cat.store.title, "NDS-Shop", "titre de la boutique");
     check_str(cat.store.author, "NDS-Shop-Homebrew", "auteur de la boutique");
     if (cat.count >= 1) {
-        check_str(cat.store.sheet, "https://api.example/api/v1/assets/unistore/db-nds-shop.t3x", "atlas");
+        check_str(cat.store.sheet, "https://api.example/api/v1/assets/atlas/db-nds-shop.t3x", "atlas");
     }
 
     if (cat.count == 2) {
