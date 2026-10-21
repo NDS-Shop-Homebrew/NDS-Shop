@@ -80,7 +80,9 @@ Record, in this order:
 
 - **TLS**: server certificate verification is disabled in the app (no
   certificate authority is embedded). Traffic stays encrypted but is not
-  authenticated.
+  authenticated. The system HTTP stack only supports RSA certificates; with an
+  ECDSA-only server the download silently restarts through libcurl, which is
+  slower.
 - **Offline cache**: only the first page of the catalog is kept (up to 200
   games).
 - **Without custom firmware**: only the `.3dsx` is usable; installing a
