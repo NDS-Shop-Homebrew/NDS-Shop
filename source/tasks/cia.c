@@ -8,12 +8,84 @@
 #include "core/app.h"
 
 #define CIA_CHUNK 0x8000u
+#define CIA_HEADER_SIZE 0x20u
 
 static const char *archive_path(char *out, size_t cap, const char *sd_path)
 {
     if (strncmp(sd_path, "sdmc:", 5) == 0) snprintf(out, cap, "%s", sd_path + 5);
     else                                    snprintf(out, cap, "%s", sd_path);
     return out;
+}
+
+static u32 read_le32(const u8 *p)
+{
+    return (u32)p[0] | ((u32)p[1] << 8) | ((u32)p[2] << 16) | ((u32)p[3] << 24);
+}
+
+static u32 read_be32(const u8 *p)
+{
+    return ((u32)p[0] << 24) | ((u32)p[1] << 16) | ((u32)p[2] << 8) | (u32)p[3];
+}
+
+static u64 read_be64(const u8 *p)
+{
+    return ((u64)read_be32(p) << 32) | (u64)read_be32(p + 4);
+}
+
+static u64 align64(u64 value)
+{
+    return (value + 0x3Fu) & ~((u64)0x3Fu);
+}
+
+// Reads the TMD title id out of a CIA file. The archive stores its sections
+// on 64-byte boundaries, so the TMD offset has to be realigned after each
+// section. Returns false when the file does not look like a CIA.
+static bool cia_title_id(Handle file, u64 *out_tid)
+{
+    u8  header[CIA_HEADER_SIZE];
+    u8  tmd[0x400];
+    u32 got = 0;
+    u64 off;
+    u32 header_size;
+    u32 sig_type;
+    u32 sig_data;
+
+    if (R_FAILED(FSFILE_Read(file, &got, 0, header, sizeof(header))) || got != sizeof(header)) return false;
+
+    header_size = read_le32(header + 0x00);
+    if (header_size < CIA_HEADER_SIZE || header_size > 0x10000) return false;
+
+    off = align64(header_size);
+    off = align64(off + read_le32(header + 0x08)); // certificate chain
+    off = align64(off + read_le32(header + 0x0C)); // ticket
+
+    got = 0;
+    if (R_FAILED(FSFILE_Read(file, &got, off, tmd, sizeof(tmd))) || got < 8) return false;
+
+    sig_type = read_be32(tmd);
+    switch (sig_type) {
+        case 0x00010000:
+        case 0x00010003: sig_data = align64(4 + 0x200); break;
+        case 0x00010001:
+        case 0x00010004: sig_data = align64(4 + 0x100); break;
+        case 0x00010002:
+        case 0x00010005: sig_data = align64(4 + 0x3C); break;
+        default: return false;
+    }
+
+    if (sig_data + 0x4C + 8 > got) return false;
+    *out_tid = read_be64(tmd + sig_data + 0x4C);
+    return true;
+}
+
+// TWL (DS) titles, system titles and DLP children live on NAND; everything
+// else goes to the SD card. AM rejects the install with 0xE0E083EE when the
+// media type does not match the title, so this has to be right.
+static FS_MediaType media_for_title(u64 tid)
+{
+    u16 category = (u16)((tid >> 32) & 0xFFFFu);
+
+    return (category & (0x1u | 0x10u | 0x8000u)) ? MEDIATYPE_NAND : MEDIATYPE_SD;
 }
 
 bool cia_install(const char *sd_path, ProgressFn cb, void *user, char *err, size_t errcap)
@@ -25,6 +97,8 @@ bool cia_install(const char *sd_path, ProgressFn cb, void *user, char *err, size
     u64     offset = 0;
     u64     total = 0;
     u32     bytes_read = 0;
+    u64     title_id = 0;
+    FS_MediaType media = MEDIATYPE_SD;
     Result  rc;
 
     if (err != NULL && errcap > 0) err[0] = '\0';
@@ -53,7 +127,21 @@ bool cia_install(const char *sd_path, ProgressFn cb, void *user, char *err, size
         return false;
     }
 
-    rc = AM_StartCiaInstall(MEDIATYPE_SD, &cia_handle);
+    if (cia_title_id(file_handle, &title_id)) {
+        AM_TitleEntry entry;
+
+        media = media_for_title(title_id);
+
+        // Reinstalling a title that is already present fails with "already
+        // exists", so remove the previous copy first, like FBI does.
+        if (R_SUCCEEDED(AM_GetTitleInfo(media, 1, &title_id, &entry))) {
+            AM_DeleteTitle(media, title_id);
+            AM_DeleteTicket(title_id);
+            if (media == MEDIATYPE_SD) AM_QueryAvailableExternalTitleDatabase(NULL);
+        }
+    }
+
+    rc = AM_StartCiaInstall(media, &cia_handle);
     if (R_FAILED(rc)) {
         amExit();
         FSFILE_Close(file_handle);

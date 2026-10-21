@@ -23,6 +23,12 @@
 #define DL_TIMEOUT_NS   (15ULL * 1000000000ULL)
 #define DL_MAX_REDIRECTS 4
 
+// httpc runs on Nintendo's ssl:C service, which only understands RSA
+// certificates. Servers that only offer an ECDSA certificate make the TLS
+// handshake fail with this result (the same one FBI special-cases). Bulk
+// downloads then fall back to libcurl, whose mbedTLS handles ECDSA.
+#define HTTPC_TLS_UNSUPPORTED 0xD8A0A03C
+
 static void  *s_soc_buffer = NULL;
 static bool   s_ready = false;
 static char   s_error[256];
@@ -268,6 +274,110 @@ static bool resolve_location(const char *base, const char *location,
     return true;
 }
 
+// A TLS failure before the first byte means the certificate is out of reach
+// for ssl:C; restarting the transfer through libcurl is then the only option.
+static bool needs_curl_fallback(Result rc, size_t done)
+{
+    return (u32)rc == HTTPC_TLS_UNSUPPORTED && done == 0;
+}
+
+struct CurlFile {
+    CURL          *handle;
+    FILE          *fp;
+    struct DlMeter meter;
+    size_t         done;
+    u32            total;
+    bool           write_error;
+    bool           cancelled;
+    ProgressFn     cb;
+    void          *user;
+};
+
+static size_t sink_file(char *ptr, size_t size, size_t nmemb, void *userdata)
+{
+    struct CurlFile *d = (struct CurlFile *)userdata;
+    size_t           n = size * nmemb;
+
+    if (n == 0) return 0;
+    if (fwrite(ptr, 1, n, d->fp) != n) {
+        d->write_error = true;
+        return 0;
+    }
+
+    if (d->total == 0) {
+        curl_off_t len = -1;
+        if (curl_easy_getinfo(d->handle, CURLINFO_CONTENT_LENGTH_DOWNLOAD_T, &len) == CURLE_OK && len > 0)
+            d->total = (u32)len;
+    }
+
+    d->done += n;
+    meter_update(&d->meter, d->done, d->total);
+    if (d->cb != NULL) {
+        float frac = (d->total > 0) ? (float)((double)d->done / (double)d->total) : -1.0f;
+        d->cb(NULL, frac, d->user);
+    }
+
+    if (g_app.cancel) {
+        d->cancelled = true;
+        return 0;
+    }
+    return n;
+}
+
+// libcurl path, used whenever httpc cannot negotiate TLS.
+static bool net_download_curl(const char *url, const char *dest, ProgressFn cb, void *user)
+{
+    struct CurlFile d;
+    CURLcode        rc;
+    long            status = 0;
+    bool            ok = false;
+
+    memset(&d, 0, sizeof(d));
+    d.cb = cb;
+    d.user = user;
+
+    d.handle = curl_new(url);
+    if (d.handle == NULL) return false;
+
+    d.fp = fopen(dest, "wb");
+    if (d.fp == NULL) {
+        set_error("failed to open %s for writing", dest);
+        curl_easy_cleanup(d.handle);
+        return false;
+    }
+    setvbuf(d.fp, NULL, _IOFBF, DL_FILE_BUFSIZE);
+    meter_reset(&d.meter);
+
+    curl_easy_setopt(d.handle, CURLOPT_WRITEFUNCTION, sink_file);
+    curl_easy_setopt(d.handle, CURLOPT_WRITEDATA, &d);
+
+    rc = curl_easy_perform(d.handle);
+    curl_easy_getinfo(d.handle, CURLINFO_RESPONSE_CODE, &status);
+    curl_easy_cleanup(d.handle);
+
+    if (rc != CURLE_OK) {
+        if (d.cancelled)      set_error("download cancelled", NULL);
+        else if (d.write_error) set_error("incomplete write to SD card", NULL);
+        else                  set_error("request failed: %s", curl_easy_strerror(rc));
+        goto out;
+    }
+    if (status < 200 || status >= 300) {
+        set_error_status("server responded", status);
+        goto out;
+    }
+    if (fflush(d.fp) != 0 || ferror(d.fp)) {
+        set_error("incomplete write to SD card", NULL);
+        goto out;
+    }
+
+    ok = true;
+
+out:
+    fclose(d.fp);
+    if (!ok) remove(dest);
+    return ok;
+}
+
 bool net_download(const char *url, const char *dest, ProgressFn cb, void *user)
 {
     httpcContext    ctx;
@@ -283,6 +393,7 @@ bool net_download(const char *url, const char *dest, ProgressFn cb, void *user)
     u32             total = 0;
     size_t          done = 0;
     Result          rc = 0;
+    bool            tls_fallback = false;
     int             hop;
 
     if (!s_ready && !net_init()) return false;
@@ -316,7 +427,8 @@ bool net_download(const char *url, const char *dest, ProgressFn cb, void *user)
     for (hop = 0; hop <= DL_MAX_REDIRECTS; hop++) {
         rc = httpcOpenContext(&ctx, HTTPC_METHOD_GET, current, 0);
         if (R_FAILED(rc)) {
-            set_error_result(rc);
+            tls_fallback = needs_curl_fallback(rc, done);
+            if (!tls_fallback) set_error_result(rc);
             goto out;
         }
         opened = true;
@@ -329,13 +441,15 @@ bool net_download(const char *url, const char *dest, ProgressFn cb, void *user)
 
         rc = httpcBeginRequest(&ctx);
         if (R_FAILED(rc)) {
-            set_error_result(rc);
+            tls_fallback = needs_curl_fallback(rc, done);
+            if (!tls_fallback) set_error_result(rc);
             goto out;
         }
 
         rc = httpcGetResponseStatusCodeTimeout(&ctx, &status, DL_TIMEOUT_NS);
         if (R_FAILED(rc)) {
-            set_error_result(rc);
+            tls_fallback = needs_curl_fallback(rc, done);
+            if (!tls_fallback) set_error_result(rc);
             goto out;
         }
 
@@ -369,7 +483,8 @@ bool net_download(const char *url, const char *dest, ProgressFn cb, void *user)
 
         rc = httpcDownloadData(&ctx, buf, DL_RECV_SIZE, &got);
         if (R_FAILED(rc) && rc != (Result)HTTPC_RESULTCODE_DOWNLOADPENDING) {
-            set_error_result(rc);
+            tls_fallback = needs_curl_fallback(rc, done);
+            if (!tls_fallback) set_error_result(rc);
             goto out;
         }
 
@@ -406,6 +521,14 @@ bool net_download(const char *url, const char *dest, ProgressFn cb, void *user)
         goto out;
     }
 
+    // A truncated transfer must never be treated as a success: the caller
+    // deletes the file only on failure and would otherwise install a partial
+    // CIA or unpack a broken ROM.
+    if (total > 0 && done != (size_t)total) {
+        set_error("download truncated", NULL);
+        goto out;
+    }
+
     ok = true;
 
 out:
@@ -416,5 +539,6 @@ out:
     if (fp != NULL) fclose(fp);
     free(buf);
     if (!ok) remove(dest);
+    if (tls_fallback) return net_download_curl(url, dest, cb, user);
     return ok;
 }
