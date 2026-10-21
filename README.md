@@ -131,7 +131,7 @@ The on-console recipe (installation, catalog, game shortcuts) is described in
 | `source/core/` | Main loop, SD card/config, translations, battery/Wi-Fi |
 | `source/ui/` | citro2d rendering (theme, screens) |
 | `source/catalog/` | Catalog, JSON, icon atlas (SD cache) |
-| `source/net/` | HTTP requests (httpc for files, libcurl for JSON), download speed |
+| `source/net/` | HTTP requests (httpc for files with a libcurl fallback, libcurl for JSON), download speed |
 | `source/tasks/` | .cia installation, catalog action runner |
 
 Matching headers live in `include/` with the same layout.
